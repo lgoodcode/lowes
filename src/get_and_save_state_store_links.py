@@ -55,5 +55,5 @@ def run(page: Page) -> None:
 def main() -> None:
     runner(run)
 
-
-main()
+if __name__ == "__main__":
+    main()
