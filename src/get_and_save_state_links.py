@@ -1,8 +1,12 @@
+import sys
 from typing import List
 
 from playwright.sync_api import Page
 
-from .utils import navigate_to_page, runner
+from utils.utils import get_output_path, navigate_to_page, runner
+
+sys.path.append('src/utils')
+
 
 STATES_LIST_URL = "https://www.lowes.com/Lowes-Stores"
 STATE_LINK_QUERY = "div[data-selector='str-storeDetailContainer'] .backyard.link"
@@ -19,7 +23,7 @@ def get_state_links(page: Page) -> List[str]:
 
 def save_state_links(state_links: List[str]) -> None:
     print("Saving state links")
-    with open("state_links.txt", "w", encoding="utf-8") as file:
+    with open(get_output_path("state_links.txt"), "w", encoding="utf-8") as file:
         for state_link in state_links:
             file.write(state_link + "\n")
 

@@ -3,8 +3,9 @@ from typing import Callable
 
 from playwright.sync_api import Page, sync_playwright
 
+from constants import OUTPUT_DIR
+
 LOWES_URL = "https://www.lowes.com"
-OUTPUT_DIR = "output"
 
 CHROMIUM_KWARGS = {
     "headless": False,
@@ -14,6 +15,10 @@ CHROMIUM_KWARGS = {
         "--no-sandbox",
     ],
 }
+
+def get_output_path(file_path: str) -> str:
+    """Return the path to a file in the /output directory."""
+    return path.join(OUTPUT_DIR, file_path)
 
 def get_url(relative_url: str) -> str:
     if not relative_url.startswith("/"):
