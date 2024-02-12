@@ -1,12 +1,8 @@
-import sys
 from typing import List
 
-from playwright.sync_api import Page
+from playwright.sync_api import Page, Playwright, sync_playwright
 
-from utils.utils import get_output_path, navigate_to_page, runner
-
-sys.path.append('src/utils')
-
+from utils.utils import get_output_path, get_page, navigate_to_page, run_playwright
 
 STATES_LIST_URL = "https://www.lowes.com/Lowes-Stores"
 STATE_LINK_QUERY = "div[data-selector='str-storeDetailContainer'] .backyard.link"
@@ -28,16 +24,25 @@ def save_state_links(state_links: List[str]) -> None:
             file.write(state_link + "\n")
 
 
-def run(page: Page) -> None:
-    print("Starting")
-    navigate_to_page(page, STATES_LIST_URL)
-    state_links = get_state_links(page)
-    save_state_links(state_links)
-    print("Done!")
+def runner(playwright: Playwright) -> None:
+    page = get_page(playwright)
+
+    try:
+        print("Starting")
+        navigate_to_page(page, STATES_LIST_URL)
+        state_links = get_state_links(page)
+        save_state_links(state_links)
+        print("Done!")
+
+    except Exception as e:
+        print(f"Error while processing the page - {e}")
+
+    finally:
+        page.close()
 
 
-def main() -> None:
-    runner(run)
+def main():
+    run_playwright(runner)
 
 
 if __name__ == "__main__":
