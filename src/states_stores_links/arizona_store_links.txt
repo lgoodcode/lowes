@@ -1,0 +1,13 @@
+/store/AZ-Buckeye/2295
+/store/AZ-Bullhead-City/2202
+/store/AZ-Carefree/2683
+/store/AZ-Casa-Grande/2272
+/store/AZ-Glendale/1728
+/store/AZ-Goodyear/1553
+/store/AZ-Lake-Havasu-City/2562
+/store/AZ-Prescott/1157
+/store/AZ-Show-Low/2833
+/store/AZ-Sierra-Vista/2663
+/store/AZ-Surprise/1607
+/store/AZ-Tempe/3000
+/store/AZ-Yuma/1082

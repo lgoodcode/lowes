@@ -2,7 +2,7 @@ from typing import List
 
 from playwright.sync_api import Page
 
-from utils import navigate_to_page, runner
+from .utils import navigate_to_page, runner
 
 STATES_LIST_URL = "https://www.lowes.com/Lowes-Stores"
 STATE_LINK_QUERY = "div[data-selector='str-storeDetailContainer'] .backyard.link"
