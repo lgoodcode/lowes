@@ -1,8 +1,10 @@
+from os import path
 from typing import List
 
 from playwright.sync_api import Page
 
-from .utils import create_directory, get_url, navigate_to_page, runner
+from utils.utils import (create_directory, get_output_path, get_url,
+                         navigate_to_page, runner)
 
 STORE_LINKS_QUERY = ".city-name a"
 LOWES_STORES_URL = "https://www.lowes.com/Lowes-Stores"
@@ -11,7 +13,7 @@ STATES_STORES_LINKS_DIR = "states_stores_links"
 
 def read_state_links() -> List[str]:
     print("Reading state links")
-    with open("state_links.txt", "r", encoding="utf-8") as file:
+    with open(get_output_path("state_links.txt"), "r", encoding="utf-8") as file:
         state_links = file.readlines()
     return state_links
 
@@ -23,7 +25,8 @@ def get_store_links(page: Page) -> List[str]:
 
 def save_store_links(store_links: List[str], state: str) -> None:
     print(f"Saving store links for {state}")
-    with open(f"{STATES_STORES_LINKS_DIR}/{state}_store_links.txt", "w", encoding="utf-8") as file:
+    state_links_path = get_output_path(path.join(STATES_STORES_LINKS_DIR,f"{state}_store_links.txt"))
+    with open(state_links_path, "w", encoding="utf-8") as file:
         for store_link in store_links:
             file.write(store_link + "\n")
 
