@@ -1,17 +1,17 @@
 from os import mkdir, path
 from typing import Callable, Optional
 
-from playwright.sync_api import Page, Playwright, sync_playwright
+from playwright.sync_api import ElementHandle, Page, Playwright, sync_playwright
+from playwright_stealth import stealth_sync
 
 from constants import OUTPUT_DIR
 from utils.proxies import Proxy, create_playwright_proxy_settings
 
 LOWES_URL = "https://www.lowes.com"
-
 CHROMIUM_KWARGS = {
     "headless": False,
     "channel": "chrome",
-    "args": ["--no-sandbox", "--background"],
+    "args": ["--disable-http2", "--no-sandbox", "--background"],
 }
 
 
@@ -50,9 +50,18 @@ def get_page(playwright: Playwright, proxy: Optional[Proxy] = None) -> Page:
     )
     context = browser.new_context()
     page = context.new_page()
+    stealth_sync(page)
     return page
 
 
 def run_playwright(process: Callable[[Playwright], None]) -> None:
     with sync_playwright() as playwright:
         process(playwright)
+
+
+def get_el(page: Page, selector: str) -> ElementHandle:
+    try:
+        el = page.wait_for_selector(selector, timeout=3000, state="visible")
+        return el
+    except Exception as e:
+        raise Exception(f"Could not find selector {selector} - {e}") from e
