@@ -38,32 +38,11 @@ def read_state_links() -> list[str]:
 def get_store_links(page: Page) -> list[str]:
     store_link_els = page.query_selector_all(STORE_LINKS_SELECTOR)
     store_links = [el.get_attribute("href") for el in store_link_els]
+
     return store_links
 
 
-def save_store_links(store_links: list[str], state: str) -> None:
-    print(f"Saving store links for {state}")
-    create_directory(STATES_STORES_LINKS_DIR)
-    state_links_path = get_output_path(
-        path.join(STATES_STORES_LINKS_DIR, f"{state.lower()}_store_links.txt")
-    )
-    with open(state_links_path, "w", encoding="utf-8") as file:
-        for store_link in store_links:
-            file.write(store_link + "\n")
-
-
-def save_store_ids(store_ids: list[str], state: str) -> None:
-    print(f"Saving store ids for {state}")
-    create_directory(STATES_STORES_IDS_DIR)
-    store_ids_path = get_output_path(
-        path.join(STATES_STORES_IDS_DIR, f"{state.lower()}_store_ids.txt")
-    )
-    with open(store_ids_path, "w", encoding="utf-8") as file:
-        for store_id in store_ids:
-            file.write(store_id + "\n")
-
-
-def process_state_link(page: Page, state_link: str, state) -> list[str]:
+def get_state_store_links(page: Page, state_link: str, state) -> list[str]:
     """Navigate to list of all stores in the state, get all the store links,
     save them to a file, and return them."""
 
@@ -73,7 +52,21 @@ def process_state_link(page: Page, state_link: str, state) -> list[str]:
     return store_links
 
 
-def process_store_link(page: Page, store_link: str) -> str:
+def save_store_links(store_links: list[str], state: str) -> None:
+    print(f"[{state}] - Saving store links")
+
+    create_directory(STATES_STORES_LINKS_DIR)
+    state_links_path = get_output_path(
+        path.join(STATES_STORES_LINKS_DIR, f"{state.lower()}_store_links.txt")
+    )
+    with open(state_links_path, "w", encoding="utf-8") as file:
+        for store_link in store_links:
+            file.write(store_link + "\n")
+
+    print(f"[{state}] - Store links saved successfully")
+
+
+def get_store_id_from_store_link(page: Page, store_link: str) -> str:
     """Create a new tab, navigate to the store, get the store ID, close the tab
     and return the store ID."""
 
@@ -84,23 +77,36 @@ def process_store_link(page: Page, store_link: str) -> str:
     return store_id
 
 
+def save_store_ids_for_state(store_ids: list[str], state: str) -> None:
+    print(f"[{state}] - Saving store IDs")
+
+    create_directory(STATES_STORES_IDS_DIR)
+    store_ids_path = get_output_path(
+        path.join(STATES_STORES_IDS_DIR, f"{state.lower()}_store_ids.txt")
+    )
+    with open(store_ids_path, "w", encoding="utf-8") as file:
+        for store_id in store_ids:
+            file.write(store_id + "\n")
+
+    print(f"[{state}] - Store IDs saved successfully")
+
+
 def process_all_state_stores_for_ids(
     page: Page, store_links: list[str], state: str
 ) -> None:
     """Process each store in the state and save the store IDs to a file."""
+    print(f"[{state}] - Getting store IDs")
 
     store_ids = []
 
     for store_link in store_links[:3]:
-        store_id = process_store_link(page, store_link)
+        store_id = get_store_id_from_store_link(page, store_link)
         store_ids.append(store_id)
 
-    save_store_ids(store_ids, state)
+    save_store_ids_for_state(store_ids, state)
 
 
 def runner(playwright: Playwright) -> None:
-    print("Starting")
-
     create_directory(STATES_STORES_LINKS_DIR)
     store_links = read_state_links()
 
@@ -109,17 +115,18 @@ def runner(playwright: Playwright) -> None:
         return
 
     proxy_manager = ProxyManager()
-    page: Page
+    # page: Page
+    page = get_page(playwright, proxy_manager.get_next_proxy())
 
     try:
-        for state_link in store_links[:1]:
+        for state_link in store_links:
             state = state_link.split("/")[-2]
-            page = get_page(playwright, proxy_manager.get_next_proxy())
+            # page = get_page(playwright, proxy_manager.get_next_proxy())
 
-            store_links = process_state_link(page, state_link, state)
+            store_links = get_state_store_links(page, state_link, state)
 
             process_all_state_stores_for_ids(page, store_links, state)
-            page.close()
+            # page.close()
 
     except Exception as e:
         print(f"Error while processing the page - {e}")

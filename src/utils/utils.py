@@ -17,14 +17,15 @@ CHROMIUM_KWARGS = {
 
 def get_output_path(file_path: str) -> str:
     """Return the path to a file in the /output directory."""
+
     create_directory(OUTPUT_DIR)  # Ensure output directory exists
     return path.join(OUTPUT_DIR, file_path)
 
 
 def get_url(relative_url: str) -> str:
-    if not relative_url.startswith("/"):
-        relative_url = f"/{relative_url}"
-    return f"https://www.lowes.com{relative_url}"
+    if relative_url.startswith("/"):
+        relative_url = relative_url[1:]
+    return f"{LOWES_URL}/{relative_url}"
 
 
 def create_directory(directory_path: str) -> None:
@@ -37,10 +38,14 @@ def create_directory(directory_path: str) -> None:
         print(f"Directory created successfully: {directory_path}")
 
 
-def navigate_to_page(page: Page, url: str) -> None:
-    print(f"Navigating to {url.replace('\n', '')}")
+def navigate_to_page(page: Page, url: str, debug=False) -> None:
+    if debug:
+        print(f"Navigating to {url.replace('\n', '')}")
+
     page.goto(url, wait_until="domcontentloaded")
-    print(f"Arrived at {page.url}")
+
+    if debug:
+        print(f"Arrived at {page.url}")
 
 
 def get_page(playwright: Playwright, proxy: Optional[Proxy] = None) -> Page:
