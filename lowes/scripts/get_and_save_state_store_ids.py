@@ -9,7 +9,6 @@ from lowes.utils.utils import create_directory, get_full_lowes_url, get_output_p
 
 logger = get_logger()
 
-LOWES_STORES_URL = "https://www.lowes.com/Lowes-Stores"
 STATES_STORES_LINKS_DIR = "states_stores_links"
 STATES_STORES_IDS_DIR = "states_stores_ids"
 STORE_LINKS_SELECTOR = ".city-name a"

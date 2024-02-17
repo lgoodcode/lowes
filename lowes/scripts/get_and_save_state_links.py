@@ -1,12 +1,12 @@
 from playwright.sync_api import Page, Playwright
 
+from lowes.constants import LOWES_STORES_URL
 from lowes.utils.logger import get_logger
 from lowes.utils.playwright import get_page, navigate_to_page
-from lowes.utils.utils import get_full_lowes_url, get_output_path
+from lowes.utils.utils import get_output_path
 
 logger = get_logger()
 
-STATES_LIST_URL = get_full_lowes_url("/Lowes-Stores")
 STATE_LINK_QUERY = "div[data-selector='str-storeDetailContainer'] .backyard.link"
 
 
@@ -37,7 +37,7 @@ def get_and_save_state_links(playwright: Playwright) -> None:
 
     try:
         logger.info("Starting")
-        navigate_to_page(page, STATES_LIST_URL)
+        navigate_to_page(page, LOWES_STORES_URL)
         state_links = get_state_links(page)
         save_state_links(state_links)
         logger.info("Done!")

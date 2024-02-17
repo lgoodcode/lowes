@@ -4,17 +4,18 @@ from playwright.sync_api import ElementHandle, Page, Playwright, sync_playwright
 from playwright_stealth import stealth_sync
 
 from lowes.constants import CHROMIUM_KWARGS
+from lowes.utils.logger import get_logger
 from lowes.utils.proxies import Proxy
 
+logger = get_logger()
 
-def navigate_to_page(page: Page, url: str, debug: Optional[bool] = False) -> None:
-    if debug:
-        print(f"Navigating to {url.replace('\n', '')}")
+
+def navigate_to_page(page: Page, url: str) -> None:
+    logger.debug(f"Navigating to {url.replace('\n', '')}")
 
     page.goto(url, wait_until="domcontentloaded")
 
-    if debug:
-        print(f"Arrived at {page.url}")
+    logger.debug(f"Arrived at {page.url}")
 
 
 def get_el(page: Page, selector: str) -> ElementHandle:
