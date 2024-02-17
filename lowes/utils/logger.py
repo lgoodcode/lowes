@@ -2,6 +2,8 @@ import inspect
 import logging
 import os
 
+from coloredlogs import ColoredFormatter
+
 
 def get_logger_name(module_file: str):
     """Gets the file name without the full path using a platform-agnostic approach.
@@ -24,14 +26,14 @@ def get_logger(level: int = logging.INFO):
     logger = logging.getLogger(logger_name)
 
     # Add handlers (e.g., console, file)
-    console_handler = logging.StreamHandler()
-    formatter = logging.Formatter(
+    handler = logging.StreamHandler()
+    formatter = ColoredFormatter(
         "[%(asctime)s] - %(levelname)s - %(name)s: %(message)s",
         datefmt="%m-%d-%Y %H:%M:%S",
     )
 
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
     logger.setLevel(level)
 
     return logger
