@@ -1,7 +1,9 @@
 ## VSCode Python Development
 
-1. Install the `Python Extension Pack` in VSCode.
-2. Open your JSON settings
+1. Install the `Python Extension Pack` in VSCode
+2. Install `Pylance` extension
+3. Install `Mypy Type Checker` extension
+4. Open your JSON settings
     1. Press `F1` and type `Preferences: Open Settings (JSON)`
     2. Add the following settings:
         ```json
@@ -36,8 +38,14 @@ or in Windows:
 pip install --upgrade setuptools
 ```
 
-2. Install the modules:
+2. Install the Poetry, the package manager:
 
 ```bash
-pip install -r requirements.txt
+pip install poetry
+```
+
+3. Install the dependencies:
+
+```bash
+poetry install
 ```

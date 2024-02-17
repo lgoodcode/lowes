@@ -1,51 +1,35 @@
 from dataclasses import dataclass
 from os import path
 
-from playwright.sync_api import ProxySettings
-
-from constants import ROOT_DIR
-
-PROXIES_FILE = "proxies.txt"
+from constants import PROXIES_FILE, ROOT_DIR
 
 
 @dataclass
 class Proxy:
-    """Represents a proxy server."""
+    server: str
+    username: str
+    password: str
+    active: bool = False
 
-    def __init__(self, proxy: str):
-        proxy = proxy.strip()
-        parts = proxy.split(":")
-        self.server = parts[0] + ":" + parts[1]
-        self.username = parts[2]
-        self.password = parts[3]
+    def __init__(self, proxies: str):
+        proxies = proxies.strip()
+        ip, port, username, password = proxies.split(":")
+        self.server = ip + ":" + port
+        self.username = username
+        self.password = password
 
 
 def read_proxy_list() -> list[str]:
-    print("Reading proxy list")
+    print(
+        "Reading proxy listReading proxy listReading proxy listReading proxy listReading proxy listReading proxy listReading proxy list"
+    )
     with open(path.join(ROOT_DIR, PROXIES_FILE), "r", encoding="utf-8") as file:
         proxies = file.readlines()
     return proxies
 
 
-def create_playwright_proxy_settings(proxy: Proxy) -> ProxySettings:
-    return ProxySettings(
-        server=proxy.server,
-        username=proxy.username,
-        password=proxy.password,
-    )
-
-
 @dataclass
 class ProxyManager:
-    """Manages a list of proxies and provides methods to get active proxies.
-
-    Raises:
-        ValueError: If no active proxies are available.
-
-    Returns:
-        _type_: ProxyManager
-    """
-
     proxy_list: list[Proxy]
     current_index: int = 0
 
@@ -59,10 +43,10 @@ class ProxyManager:
             self.current_index = (self.current_index + 1) % len(self.proxy_list)
         return self.proxy_list[self.current_index]
 
-    def set_proxy_inactive(self, address: str):
+    def set_proxy_inactive(self, server: str) -> None:
         """Marks a proxy as inactive based on its address."""
         for _, proxy in enumerate(self.proxy_list):
-            if proxy.address == address:
+            if proxy.server == server:
                 proxy.active = False
                 self.current_index = (self.current_index - 1) % len(self.proxy_list)
                 break

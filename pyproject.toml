@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "lowes"
+version = "0.1.0"
+description = ""
+authors = ["Lawrence Good <lawrence.good55@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pytest-playwright = "^0.4.4"
+playwright-stealth = "^1.0.6"
+mypy = "^1.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+max-line-length = 120
+typeCheckingMode = "strict"
+reportMissingImports = true
+reportMissingTypeStubs = false
+include = ["**/*.py"]
+exclude = [
+    "**/.venv",
+    "**/.mypy_cache",
+    "**/.pytest_cache",
+    "**/.git",
+    "**/.tox",
+    "**/.vscode",
+    "**/__pycache__",
+    "**/.mypy_cache",
+    "**/.pytest_cache",
+    "**/.git",
+    "**/.tox",
+    "**/.vscode",
+    "**/__pycache__",
+]

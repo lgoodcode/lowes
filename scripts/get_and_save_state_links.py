@@ -1,23 +1,26 @@
-from typing import List
+from playwright.sync_api import Page, Playwright
 
-from playwright.sync_api import Page, Playwright, sync_playwright
-
-from utils.utils import get_output_path, get_page, navigate_to_page, run_playwright
+from utils.playwright import get_page, navigate_to_page, run_playwright
+from utils.utils import get_output_path
 
 STATES_LIST_URL = "https://www.lowes.com/Lowes-Stores"
 STATE_LINK_QUERY = "div[data-selector='str-storeDetailContainer'] .backyard.link"
 
 
-def get_state_links(page: Page) -> List[str]:
+def get_state_links(page: Page) -> list[str]:
     print("Getting state links")
     raw_state_link_els = page.query_selector_all(STATE_LINK_QUERY)
     # Skip the first two links, they are not states
     state_link_els = raw_state_link_els[2:]
-    state_links = [el.get_attribute("href") for el in state_link_els]
+    state_links: list[str] = []
+
+    for state_link_el in state_link_els:
+        if href := state_link_el.get_attribute("href"):
+            state_links.append(href)
     return state_links
 
 
-def save_state_links(state_links: List[str]) -> None:
+def save_state_links(state_links: list[str]) -> None:
     print("Saving state links")
     with open(get_output_path("state_links.txt"), "w", encoding="utf-8") as file:
         for state_link in state_links:

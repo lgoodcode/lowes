@@ -1,18 +1,10 @@
 from os import path
-from re import search
 
 from playwright.sync_api import Page, Playwright
 
+from utils.playwright import get_el, get_page, navigate_to_page, run_playwright
 from utils.proxies import ProxyManager
-from utils.utils import (
-    create_directory,
-    get_el,
-    get_output_path,
-    get_page,
-    get_url,
-    navigate_to_page,
-    run_playwright,
-)
+from utils.utils import create_directory, get_full_lowes_url, get_output_path
 
 LOWES_STORES_URL = "https://www.lowes.com/Lowes-Stores"
 STATES_STORES_LINKS_DIR = "states_stores_links"
@@ -37,16 +29,19 @@ def read_state_links() -> list[str]:
 
 def get_store_links(page: Page) -> list[str]:
     store_link_els = page.query_selector_all(STORE_LINKS_SELECTOR)
-    store_links = [el.get_attribute("href") for el in store_link_els]
+    store_links: list[str] = []
 
+    for store_link in store_link_els:
+        if href := store_link.get_attribute("href"):
+            store_links.append(href)
     return store_links
 
 
-def get_state_store_links(page: Page, state_link: str, state) -> list[str]:
+def get_state_store_links(page: Page, state_link: str, state: str) -> list[str]:
     """Navigate to list of all stores in the state, get all the store links,
     save them to a file, and return them."""
 
-    navigate_to_page(page, get_url(state_link))
+    navigate_to_page(page, get_full_lowes_url(state_link))
     store_links = get_store_links(page)
     save_store_links(store_links, state)
     return store_links
@@ -71,7 +66,7 @@ def get_store_id_from_store_link(page: Page, store_link: str) -> str:
     and return the store ID."""
 
     store_page = page.context.new_page()
-    navigate_to_page(store_page, get_url(store_link))
+    navigate_to_page(store_page, get_full_lowes_url(store_link))
     store_id = get_store_id(store_page)
     store_page.close()
     return store_id
@@ -97,7 +92,7 @@ def process_all_state_stores_for_ids(
     """Process each store in the state and save the store IDs to a file."""
     print(f"[{state}] - Getting store IDs")
 
-    store_ids = []
+    store_ids: list[str] = []
 
     for store_link in store_links[:3]:
         store_id = get_store_id_from_store_link(page, store_link)
