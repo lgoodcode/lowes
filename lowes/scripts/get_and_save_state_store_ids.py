@@ -2,12 +2,7 @@ from os import path
 
 from playwright.sync_api import Page, Playwright
 
-from lowes.utils.playwright import (
-    get_el,
-    get_page,
-    navigate_to_page,
-    run_with_playwright,
-)
+from lowes.utils.playwright import get_el, get_page, navigate_to_page
 from lowes.utils.proxies import ProxyManager
 from lowes.utils.utils import create_directory, get_full_lowes_url, get_output_path
 
@@ -106,7 +101,7 @@ def process_all_state_stores_for_ids(
     save_store_ids_for_state(store_ids, state)
 
 
-def runner(playwright: Playwright) -> None:
+def get_and_save_state_store_ids(playwright: Playwright) -> None:
     create_directory(STATES_STORES_LINKS_DIR)
     store_links = read_state_links()
 
@@ -133,11 +128,3 @@ def runner(playwright: Playwright) -> None:
 
     finally:
         page.close()
-
-
-def main():
-    run_with_playwright(runner)
-
-
-if __name__ == "__main__":
-    main()
