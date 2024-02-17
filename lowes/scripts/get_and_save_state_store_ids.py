@@ -4,8 +4,9 @@ from playwright.sync_api import Page, Playwright
 
 from lowes.utils.logger import get_logger
 from lowes.utils.playwright import get_el, get_page, navigate_to_page
-from lowes.utils.proxies import ProxyManager
-from lowes.utils.utils import create_directory, get_full_lowes_url, get_output_path
+# from lowes.utils.proxies import ProxyManager
+from lowes.utils.utils import (create_directory, get_full_lowes_url,
+                               get_output_path)
 
 logger = get_logger()
 
@@ -109,11 +110,12 @@ def get_and_save_state_store_ids(playwright: Playwright) -> None:
 
     if not store_links:
         logger.info("No state links found, exiting")
-        return
+        exit(1)
 
-    proxy_manager = ProxyManager()
+    # proxy_manager = ProxyManager()
     # page: Page
-    page = get_page(playwright, proxy_manager.get_next_proxy())
+    # page = get_page(playwright, proxy_manager.get_next_proxy())
+    page = get_page(playwright)
 
     try:
         for state_link in store_links[:2]:

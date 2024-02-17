@@ -54,8 +54,14 @@ class ProxyManager:
 
     def get_next_proxy(self) -> Proxy:
         """Returns the next proxy in the list."""
+        current_proxy = self.proxy_list[self.current_index]
+        current_proxy.active = False
+
         self.current_index = (self.current_index + 1) % len(self.proxy_list)
-        return self.proxy_list[self.current_index]
+
+        next_proxy = self.proxy_list[self.current_index]
+        next_proxy.active = True
+        return next_proxy
 
     # def random_active_proxy(self) -> Proxy:
     #     """Returns a random active proxy from the list."""

@@ -1,6 +1,12 @@
 from typing import Callable, Optional
 
-from playwright.sync_api import ElementHandle, Page, Playwright, sync_playwright
+from playwright.sync_api import (
+    ElementHandle,
+    Page,
+    Playwright,
+    ProxySettings,
+    sync_playwright,
+)
 from playwright_stealth import stealth_sync
 
 from lowes.constants import CHROMIUM_KWARGS
@@ -30,18 +36,16 @@ def get_el(page: Page, selector: str) -> ElementHandle:
         raise Exception(f"Timed out: could not find selector {selector} - {e}") from e
 
 
-def get_page(playwright: Playwright, proxy: Optional[Proxy] = None) -> Page:
+def get_page(playwright: Playwright, proxy_config: Optional[Proxy] = None) -> Page:
     browser = playwright.chromium.launch(
         **CHROMIUM_KWARGS,
         proxy=(
-            (
-                {
-                    "server": proxy.server,
-                    "username": proxy.username,
-                    "password": proxy.password,
-                }
+            ProxySettings(
+                server=proxy_config.server,
+                username=proxy_config.username,
+                password=proxy_config.password,
             )
-            if proxy
+            if proxy_config
             else None
         ),
     )
