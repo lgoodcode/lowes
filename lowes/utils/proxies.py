@@ -1,7 +1,9 @@
 from dataclasses import dataclass
-from os import path
 
-from lowes.constants import PROXIES_FILE, ROOT_DIR
+from lowes.constants import PROXIES_FILE_PATH
+from lowes.utils.logger import get_logger
+
+logger = get_logger()
 
 
 @dataclass
@@ -20,10 +22,9 @@ class Proxy:
 
 
 def read_proxy_list() -> list[str]:
-    print(
-        "Reading proxy listReading proxy listReading proxy listReading proxy listReading proxy listReading proxy listReading proxy list"
-    )
-    with open(path.join(ROOT_DIR, PROXIES_FILE), "r", encoding="utf-8") as file:
+    logger.info("Reading proxy list")
+
+    with open(PROXIES_FILE_PATH, "r", encoding="utf-8") as file:
         proxies = file.readlines()
     return proxies
 

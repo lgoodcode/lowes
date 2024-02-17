@@ -11,4 +11,4 @@ CHROMIUM_KWARGS: Dict[str, Any] = {
 }
 
 LOWES_URL = "https://www.lowes.com"
-PROXIES_FILE = "proxies.txt"
+PROXIES_FILE_PATH = path.join(ROOT_DIR, "data", "proxies.txt")

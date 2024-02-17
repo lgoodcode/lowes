@@ -2,9 +2,12 @@ from os import path
 
 from playwright.sync_api import Page, Playwright
 
+from lowes.utils.logger import get_logger
 from lowes.utils.playwright import get_el, get_page, navigate_to_page
 from lowes.utils.proxies import ProxyManager
 from lowes.utils.utils import create_directory, get_full_lowes_url, get_output_path
+
+logger = get_logger()
 
 LOWES_STORES_URL = "https://www.lowes.com/Lowes-Stores"
 STATES_STORES_LINKS_DIR = "states_stores_links"
@@ -21,7 +24,7 @@ def get_store_id(page: Page) -> str:
 
 
 def read_state_links() -> list[str]:
-    print("Reading state links")
+    logger.info("Reading state links")
     with open(get_output_path("state_links.txt"), "r", encoding="utf-8") as file:
         state_links = file.readlines()
     return state_links
@@ -48,7 +51,7 @@ def get_state_store_links(page: Page, state_link: str, state: str) -> list[str]:
 
 
 def save_store_links(store_links: list[str], state: str) -> None:
-    print(f"[{state}] - Saving store links")
+    logger.info(f"[{state}] - Saving store links")
 
     create_directory(STATES_STORES_LINKS_DIR)
     state_links_path = get_output_path(
@@ -58,7 +61,7 @@ def save_store_links(store_links: list[str], state: str) -> None:
         for store_link in store_links:
             file.write(store_link + "\n")
 
-    print(f"[{state}] - Store links saved successfully")
+    logger.info(f"[{state}] - Store links saved successfully")
 
 
 def get_store_id_from_store_link(page: Page, store_link: str) -> str:
@@ -73,7 +76,7 @@ def get_store_id_from_store_link(page: Page, store_link: str) -> str:
 
 
 def save_store_ids_for_state(store_ids: list[str], state: str) -> None:
-    print(f"[{state}] - Saving store IDs")
+    logger.info(f"[{state}] - Saving store IDs")
 
     create_directory(STATES_STORES_IDS_DIR)
     store_ids_path = get_output_path(
@@ -83,14 +86,14 @@ def save_store_ids_for_state(store_ids: list[str], state: str) -> None:
         for store_id in store_ids:
             file.write(store_id + "\n")
 
-    print(f"[{state}] - Store IDs saved successfully")
+    logger.info(f"[{state}] - Store IDs saved successfully")
 
 
 def process_all_state_stores_for_ids(
     page: Page, store_links: list[str], state: str
 ) -> None:
     """Process each store in the state and save the store IDs to a file."""
-    print(f"[{state}] - Getting store IDs")
+    logger.info(f"[{state}] - Getting store IDs")
 
     store_ids: list[str] = []
 
@@ -106,7 +109,7 @@ def get_and_save_state_store_ids(playwright: Playwright) -> None:
     store_links = read_state_links()
 
     if not store_links:
-        print("No state links found, exiting")
+        logger.info("No state links found, exiting")
         return
 
     proxy_manager = ProxyManager()
@@ -114,7 +117,7 @@ def get_and_save_state_store_ids(playwright: Playwright) -> None:
     page = get_page(playwright, proxy_manager.get_next_proxy())
 
     try:
-        for state_link in store_links:
+        for state_link in store_links[:2]:
             state = state_link.split("/")[-2]
             # page = get_page(playwright, proxy_manager.get_next_proxy())
 
@@ -124,7 +127,7 @@ def get_and_save_state_store_ids(playwright: Playwright) -> None:
             # page.close()
 
     except Exception as e:
-        print(f"Error while processing the page - {e}")
+        logger.error(f"Error while processing the page - {e}")
 
     finally:
         page.close()
