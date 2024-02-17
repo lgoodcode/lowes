@@ -1,9 +1,9 @@
 from playwright.sync_api import Page, Playwright
 
-from utils.playwright import get_page, navigate_to_page, run_playwright
-from utils.utils import get_output_path
+from lowes.utils.playwright import get_page, navigate_to_page
+from lowes.utils.utils import get_full_lowes_url, get_output_path
 
-STATES_LIST_URL = "https://www.lowes.com/Lowes-Stores"
+STATES_LIST_URL = get_full_lowes_url("/Lowes-Stores")
 STATE_LINK_QUERY = "div[data-selector='str-storeDetailContainer'] .backyard.link"
 
 
@@ -27,7 +27,7 @@ def save_state_links(state_links: list[str]) -> None:
             file.write(state_link + "\n")
 
 
-def runner(playwright: Playwright) -> None:
+def get_and_save_state_links(playwright: Playwright) -> None:
     page = get_page(playwright)
 
     try:
@@ -42,11 +42,3 @@ def runner(playwright: Playwright) -> None:
 
     finally:
         page.close()
-
-
-def main():
-    run_playwright(runner)
-
-
-if __name__ == "__main__":
-    main()

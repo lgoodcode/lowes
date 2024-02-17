@@ -1,4 +1,6 @@
-## VSCode Python Development
+## Initial setup
+
+### VSCode Python Development
 
 1. Install the `Python Extension Pack` in VSCode
 2. Install `Pylance` extension
@@ -16,7 +18,7 @@
           },
         ```
 
-## Initializing the virtual environment
+### Initializing the virtual environment
 
 Always, when starting a new terminal, you need to activate the virtual environment:
 
@@ -30,22 +32,22 @@ or in Windows:
 .\venv\Scripts\Activate.ps1
 ```
 
-### First time
+### First time setup
 
-1. Install `setuptools`:
-
-```bash
-pip install --upgrade setuptools
-```
-
-2. Install the Poetry, the package manager:
+1. Install the Poetry, the package manager:
 
 ```bash
 pip install poetry
 ```
 
-3. Install the dependencies:
+2. Install the dependencies:
 
 ```bash
 poetry install
+```
+
+## Running the code
+
+```bash
+python -m lowes
 ```

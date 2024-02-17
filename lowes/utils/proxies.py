@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from os import path
 
-from constants import PROXIES_FILE, ROOT_DIR
+from lowes.constants import PROXIES_FILE, ROOT_DIR
 
 
 @dataclass

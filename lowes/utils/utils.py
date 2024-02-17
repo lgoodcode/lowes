@@ -1,7 +1,7 @@
 from os import mkdir, path
 from urllib.parse import urljoin
 
-from constants import LOWES_URL, OUTPUT_DIR
+from lowes.constants import LOWES_URL, OUTPUT_DIR
 
 
 def create_directory(directory_path: str):

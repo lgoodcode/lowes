@@ -3,8 +3,8 @@ from typing import Callable, Optional
 from playwright.sync_api import ElementHandle, Page, Playwright, sync_playwright
 from playwright_stealth import stealth_sync
 
-from constants import CHROMIUM_KWARGS
-from utils.proxies import Proxy
+from lowes.constants import CHROMIUM_KWARGS
+from lowes.utils.proxies import Proxy
 
 
 def navigate_to_page(page: Page, url: str, debug: Optional[bool] = False) -> None:
@@ -50,6 +50,6 @@ def get_page(playwright: Playwright, proxy: Optional[Proxy] = None) -> Page:
     return page
 
 
-def run_playwright(process: Callable[[Playwright], None]) -> None:
+def run_with_playwright(process: Callable[[Playwright], None]) -> None:
     with sync_playwright() as playwright:
         process(playwright)

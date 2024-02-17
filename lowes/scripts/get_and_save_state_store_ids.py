@@ -2,9 +2,14 @@ from os import path
 
 from playwright.sync_api import Page, Playwright
 
-from utils.playwright import get_el, get_page, navigate_to_page, run_playwright
-from utils.proxies import ProxyManager
-from utils.utils import create_directory, get_full_lowes_url, get_output_path
+from lowes.utils.playwright import (
+    get_el,
+    get_page,
+    navigate_to_page,
+    run_with_playwright,
+)
+from lowes.utils.proxies import ProxyManager
+from lowes.utils.utils import create_directory, get_full_lowes_url, get_output_path
 
 LOWES_STORES_URL = "https://www.lowes.com/Lowes-Stores"
 STATES_STORES_LINKS_DIR = "states_stores_links"
@@ -131,7 +136,7 @@ def runner(playwright: Playwright) -> None:
 
 
 def main():
-    run_playwright(runner)
+    run_with_playwright(runner)
 
 
 if __name__ == "__main__":
