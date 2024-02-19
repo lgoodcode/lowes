@@ -117,6 +117,7 @@ async def task(context: BrowserContext, state_link: str):
         store_links = await get_state_store_links(page, state_link, state)
         await process_all_state_stores_for_ids(page, store_links, state)
         await page.close()
+
     except Exception as e:
         raise e
 
