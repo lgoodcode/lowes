@@ -6,15 +6,6 @@ from coloredlogs import ColoredFormatter
 
 
 def get_logger_name(module_file: str):
-    """Gets the file name without the full path using a platform-agnostic approach.
-
-    Args:
-        module_file: The full path to the module file.
-
-    Returns:
-        The file name without the full path.
-    """
-
     head, tail = os.path.split(module_file)
     return tail or os.path.basename(head)  # Handle cases where head is empty
 
