@@ -37,7 +37,7 @@ async def get_el(page: Page, selector: str) -> ElementHandle:
         raise Exception(f"Timed out: could not find selector {selector} - {e}") from e
 
 
-async def get_context(
+async def create_context(
     playwright: Playwright, proxy_config: Optional[Proxy] = None
 ) -> BrowserContext:
     browser = await playwright.chromium.launch(
@@ -65,7 +65,7 @@ async def get_page(context: BrowserContext) -> Page:
 async def create_page(
     playwright: Playwright, proxy_config: Optional[Proxy] = None
 ) -> Page:
-    context = await get_context(playwright, proxy_config)
+    context = await create_context(playwright, proxy_config)
     page = await context.new_page()
     await stealth_async(page)
     return page

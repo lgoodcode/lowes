@@ -3,7 +3,12 @@ from os import path
 
 from playwright.async_api import BrowserContext, Page, Playwright
 
-from lowes.utils.async_playwright import get_context, get_el, get_page, navigate_to_page
+from lowes.utils.async_playwright import (
+    create_context,
+    get_el,
+    get_page,
+    navigate_to_page,
+)
 from lowes.utils.logger import get_logger
 
 # from lowes.utils.proxies import ProxyManager
@@ -124,7 +129,7 @@ async def async_get_and_save_state_store_ids(playwright: Playwright) -> None:
         logger.info("No state links found, exiting")
         exit(1)
 
-    context = await get_context(playwright)
+    context = await create_context(playwright)
 
     try:
         tasks = [task(context, state_link) for state_link in store_links[:2]]

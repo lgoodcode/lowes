@@ -2,7 +2,7 @@ from playwright.sync_api import Page, Playwright
 
 from lowes.constants import LOWES_STORES_URL
 from lowes.utils.logger import get_logger
-from lowes.utils.playwright import get_page, navigate_to_page
+from lowes.utils.playwright import create_page, navigate_to_page
 from lowes.utils.utils import get_output_path
 
 logger = get_logger()
@@ -33,14 +33,12 @@ def save_state_links(state_links: list[str]) -> None:
 
 
 def get_and_save_state_links(playwright: Playwright) -> None:
-    page = get_page(playwright)
+    page = create_page(playwright)
 
     try:
-        logger.info("Starting")
         navigate_to_page(page, LOWES_STORES_URL)
         state_links = get_state_links(page)
         save_state_links(state_links)
-        logger.info("Done!")
 
     except Exception as e:
         logger.error(f"Error while processing the page - {e}")
