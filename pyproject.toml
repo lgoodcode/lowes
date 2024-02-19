@@ -12,6 +12,7 @@ mypy = "^1.8.0"
 playwright-stealth = "^1.0.6"
 setuptools = "^69.1.0"
 coloredlogs = "^15.0.1"
+asyncio = "^3.4.3"
 
 [build-system]
 requires = ["poetry-core"]
