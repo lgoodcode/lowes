@@ -49,5 +49,5 @@ poetry install
 ## Running the code
 
 ```bash
-python -m lowes
+python -m lowes {script_number}
 ```
