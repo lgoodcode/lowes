@@ -103,7 +103,7 @@ async def process_all_state_stores_for_ids(
 
     store_ids: list[str] = []
 
-    for store_link in store_links[:3]:
+    for store_link in store_links:
         store_id = await get_store_id_from_store_link(page, store_link)
         store_ids.append(store_id)
 
@@ -133,7 +133,7 @@ async def async_get_and_save_state_store_ids(playwright: Playwright) -> None:
     context = await create_context(playwright)
 
     try:
-        tasks = [task(context, state_link) for state_link in store_links[:2]]
+        tasks = [task(context, state_link) for state_link in store_links]
         await asyncio.gather(*tasks)
 
     except Exception as e:
