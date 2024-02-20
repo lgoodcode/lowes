@@ -48,6 +48,10 @@ poetry install
 
 ## Running the code
 
+Specify the script number and optionally the nubmer of concurrent workers. The
+default is `2` and a maximum of `8`. This maximum is to prevent getting rate
+limited by the server.
+
 ```bash
-python -m lowes {script_number}
+python -m lowes {script_number} [-c {number_of_workers}]
 ```

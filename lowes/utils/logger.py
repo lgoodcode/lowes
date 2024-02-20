@@ -21,7 +21,7 @@ def get_logger(level: int = logging.INFO):
     formatter = ColoredFormatter(
         # "[%(asctime)s] - %(levelname)s - %(name)s: %(message)s",
         "[%(asctime)s] %(message)s",
-        datefmt="%m-%d-%Y %H:%M:%S",
+        datefmt="%m-%d-%Y %H:%M:%S.%f",
     )
 
     handler.setFormatter(formatter)

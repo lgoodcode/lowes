@@ -1,10 +1,11 @@
 import argparse
 import asyncio
+from time import time
 from typing import Any, List, Tuple
 
 from lowes.scripts.async_get_and_save_state_links import async_get_and_save_state_links
-from lowes.scripts.async_get_and_save_state_store_ids import (
-    async_get_and_save_state_store_ids,
+from lowes.scripts.async_get_and_save_state_store_info import (
+    async_get_and_save_state_store_info,
 )
 from lowes.scripts.get_and_save_state_links import get_and_save_state_links
 from lowes.scripts.get_and_save_state_store_ids import get_and_save_state_store_ids
@@ -14,11 +15,12 @@ from lowes.utils.playwright import run_with_playwright
 
 logger = get_logger()
 
+MAX_CONCURRENCY = 8
 SCRIPTS: List[Tuple[Any, bool]] = [
     (get_and_save_state_links, False),
     (get_and_save_state_store_ids, False),
     (async_get_and_save_state_links, True),
-    (async_get_and_save_state_store_ids, True),
+    (async_get_and_save_state_store_info, True),
 ]
 
 
@@ -36,14 +38,15 @@ async def main():
         "--concurrency",
         type=int,
         default=2,
-        help="Set the maximum number of concurrent tasks (default: 2).\nNote: only used for async scripts.",
+        help="Set the maximum number of concurrent tasks (default: 2, max: 8).\nNote: only used for async scripts.",
     )
 
     args = parser.parse_args()
     script_number = int(args.script_number)
-    max_concurrency = int(args.concurrency)
+    max_concurrency = min(int(args.concurrency), MAX_CONCURRENCY)
     selected_script, is_async = SCRIPTS[script_number]
 
+    start_time = time()
     logger.info(f"[selected_script]: {selected_script.__name__}")
     logger.info(f"[max_concurrency]: {max_concurrency}")
 
@@ -52,6 +55,9 @@ async def main():
     else:
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, run_with_playwright, selected_script)
+
+    logger.info(f"{selected_script.__name__} completed successfully")
+    logger.info(f"Time taken: {time() - start_time:.2f} seconds")
 
 
 # Run the selected script with Playwright
