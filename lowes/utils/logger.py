@@ -19,7 +19,8 @@ def get_logger(level: int = logging.INFO):
     # Add handlers (e.g., console, file)
     handler = logging.StreamHandler()
     formatter = ColoredFormatter(
-        "[%(asctime)s] - %(levelname)s - %(name)s: %(message)s",
+        # "[%(asctime)s] - %(levelname)s - %(name)s: %(message)s",
+        "[%(asctime)s] %(message)s",
         datefmt="%m-%d-%Y %H:%M:%S",
     )
 

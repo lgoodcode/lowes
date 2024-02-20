@@ -1,4 +1,6 @@
-from typing import Awaitable, Callable, Optional, Union, overload
+from asyncio import sleep
+from random import randint
+from typing import Any, Awaitable, Callable, Coroutine, List, Optional, Union, overload
 
 from playwright.async_api import (
     BrowserContext,
@@ -13,6 +15,7 @@ from playwright_stealth import stealth_async
 from lowes.constants import CHROMIUM_KWARGS
 from lowes.utils.logger import get_logger
 from lowes.utils.proxies import Proxy
+from lowes.utils.tasks import batch_tasks
 
 logger = get_logger()
 
@@ -20,6 +23,8 @@ logger = get_logger()
 async def navigate_to_page(page: Page, url: str) -> None:
     logger.debug(f"Navigating to {url.replace('\n', '')}")
 
+    # 1-3 seconds delay to simulate human behavior
+    await sleep(randint(1, 3))
     await page.goto(url, wait_until="domcontentloaded")
 
     logger.debug(f"Arrived at {page.url}")
@@ -87,7 +92,9 @@ async def create_page(
 
 
 async def async_run_with_playwright(
-    process: Callable[[Playwright], Awaitable[None]]
+    process: Callable[[Playwright], Awaitable[List[Coroutine[Any, Any, None]]]],
+    max_concurrency: int,
 ) -> None:
     async with async_playwright() as playwright:
-        await process(playwright)
+        tasks = await process(playwright)
+        await batch_tasks(tasks, max_concurrency)

@@ -28,13 +28,21 @@ async def main():
         help="Choose the script to run:\n"
         + "\n".join(f"{script.__name__}\n" for script, _ in SCRIPTS),
     )
+    parser.add_argument(
+        "-c",
+        "--concurrency",
+        type=int,
+        default=2,
+        help="Set the maximum number of concurrent tasks (default: 2).\nNote: only used for async scripts.",
+    )
 
     args = parser.parse_args()
     script_number = int(args.script_number)
+    max_concurrency = int(args.concurrency)
     selected_script, is_async = SCRIPTS[script_number]
 
     if is_async:
-        await async_run_with_playwright(selected_script)
+        await async_run_with_playwright(selected_script, max_concurrency)
     else:
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, run_with_playwright, selected_script)

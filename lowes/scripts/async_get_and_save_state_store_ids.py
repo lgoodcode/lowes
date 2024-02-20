@@ -1,5 +1,6 @@
 import asyncio
 from os import path
+from typing import Any, Coroutine, List
 
 from playwright.async_api import BrowserContext, Page, Playwright
 
@@ -17,6 +18,7 @@ from lowes.utils.utils import create_directory, get_full_lowes_url, get_output_p
 
 logger = get_logger()
 
+# MAX_CONCURRENCY = 3
 STATES_STORES_LINKS_DIR = "states_stores_links"
 STATES_STORES_IDS_DIR = "states_stores_ids"
 STORE_LINKS_SELECTOR = ".city-name a"
@@ -30,16 +32,16 @@ async def get_store_id(page: Page) -> str:
     return store_id
 
 
-def read_state_links() -> list[str]:
+def read_state_links() -> List[str]:
     logger.info("Reading state links")
     with open(get_output_path("state_links.txt"), "r", encoding="utf-8") as file:
         state_links = file.readlines()
     return state_links
 
 
-async def get_store_links(page: Page) -> list[str]:
+async def get_store_links(page: Page) -> List[str]:
     store_link_els = await page.query_selector_all(STORE_LINKS_SELECTOR)
-    store_links: list[str] = []
+    store_links: List[str] = []
 
     for store_link in store_link_els:
         if href := await store_link.get_attribute("href"):
@@ -47,7 +49,7 @@ async def get_store_links(page: Page) -> list[str]:
     return store_links
 
 
-async def get_state_store_links(page: Page, state_link: str, state: str) -> list[str]:
+async def get_state_store_links(page: Page, state_link: str, state: str) -> List[str]:
     """Navigate to list of all stores in the state, get all the store links,
     save them to a file, and return them."""
 
@@ -57,7 +59,7 @@ async def get_state_store_links(page: Page, state_link: str, state: str) -> list
     return store_links
 
 
-def save_store_links(store_links: list[str], state: str) -> None:
+def save_store_links(store_links: List[str], state: str) -> None:
     logger.info(f"[{state}] - Saving store links")
 
     create_directory(STATES_STORES_LINKS_DIR)
@@ -82,7 +84,7 @@ async def get_store_id_from_store_link(page: Page, store_link: str) -> str:
     return store_id
 
 
-def save_store_ids_for_state(store_ids: list[str], state: str) -> None:
+def save_store_ids_for_state(store_ids: List[str], state: str) -> None:
     logger.info(f"[{state}] - Saving store IDs")
 
     create_directory(STATES_STORES_IDS_DIR)
@@ -97,21 +99,26 @@ def save_store_ids_for_state(store_ids: list[str], state: str) -> None:
 
 
 async def process_all_state_stores_for_ids(
-    page: Page, store_links: list[str], state: str
+    page: Page, store_links: List[str], state: str
 ) -> None:
     """Process each store in the state and save the store IDs to a file."""
+
     logger.info(f"[{state}] - Getting store IDs")
 
-    store_ids: list[str] = []
+    store_ids: List[str] = []
 
-    for store_link in store_links:
+    # Batch the store links to check multiple at once
+    async def task(store_link: str):
         store_id = await get_store_id_from_store_link(page, store_link)
         store_ids.append(store_id)
+
+    tasks = [task(store_link) for store_link in store_links[:3]]
+    await asyncio.gather(*tasks)
 
     save_store_ids_for_state(store_ids, state)
 
 
-async def task(context: BrowserContext, state_link: str):
+async def get_store_ids_for_state(context: BrowserContext, state_link: str):
     try:
         page = await get_page(context)
         state = state_link.split("/")[-2]
@@ -123,11 +130,13 @@ async def task(context: BrowserContext, state_link: str):
         raise e
 
 
-async def async_get_and_save_state_store_ids(playwright: Playwright) -> None:
+async def async_get_and_save_state_store_ids(
+    playwright: Playwright,
+) -> List[Coroutine[Any, Any, None]]:
     create_directory(STATES_STORES_LINKS_DIR)
-    store_links = read_state_links()
+    state_links = read_state_links()
 
-    if not store_links:
+    if not state_links:
         logger.info("No state links found, exiting")
         exit(1)
 
@@ -136,10 +145,8 @@ async def async_get_and_save_state_store_ids(playwright: Playwright) -> None:
         playwright, proxy_config=proxy_manager.get_next_proxy()
     )
 
-    try:
-        tasks = [task(context, state_link) for state_link in store_links]
-        await asyncio.gather(*tasks)
+    tasks = [
+        get_store_ids_for_state(context, state_link) for state_link in state_links[:3]
+    ]
 
-    except Exception as e:
-        logger.error(f"Error while processing the page - {e}")
-        await context.close()
+    return tasks

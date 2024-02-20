@@ -1,6 +1,3 @@
-216.185.62.128:3486:ssfogbsa:jrscgC07HA
-108.165.234.129:3486:ssfogbsa:jrscgC07HA
-108.165.234.139:3486:ssfogbsa:jrscgC07HA
 216.185.62.101:3486:ssfogbsa:jrscgC07HA
 50.114.118.8:3486:ssfogbsa:jrscgC07HA
 50.114.118.161:3486:ssfogbsa:jrscgC07HA
