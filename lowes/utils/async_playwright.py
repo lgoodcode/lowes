@@ -21,13 +21,13 @@ logger = get_logger()
 
 
 async def navigate_to_page(page: Page, url: str) -> None:
-    logger.debug(f"Navigating to {url.replace('\n', '')}")
+    logger.info(f"Navigating to {url.replace('\n', '')}")
 
     # 1-3 seconds delay to simulate human behavior
     await sleep(randint(1, 3))
     await page.goto(url, wait_until="domcontentloaded")
 
-    logger.debug(f"Arrived at {page.url}")
+    logger.info(f"Arrived at {page.url}")
 
 
 async def get_el(page: Page, selector: str) -> ElementHandle:

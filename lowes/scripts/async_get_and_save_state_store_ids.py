@@ -1,4 +1,3 @@
-import asyncio
 from os import path
 from typing import Any, Coroutine, List
 
@@ -65,15 +64,15 @@ def save_store_links(store_links: List[str], state: str) -> None:
     logger.info(f"[{state}] - Store links saved successfully")
 
 
-async def get_store_id_from_store_link(page: Page, store_link: str) -> str:
-    """Create a new tab, navigate to the store, get the store ID, close the tab
-    and return the store ID."""
+# async def get_store_id_from_store_link(page: Page, state: str, store_link: str) -> str:
+#     """Create a new tab, navigate to the store, get the store ID, close the tab
+#     and return the store ID."""
 
-    store_page = await page.context.new_page()
-    await navigate_to_page(store_page, get_full_lowes_url(store_link))
-    store_id = await get_store_id(store_page)
-    await store_page.close()
-    return store_id
+#     store_page = await page.context.new_page()
+#     await navigate_to_page(store_page, get_full_lowes_url(store_link))
+#     store_id = await get_store_id(store_page)
+#     await store_page.close()
+#     return store_id
 
 
 def save_store_ids_for_state(store_ids: List[str], state: str) -> None:
@@ -99,13 +98,17 @@ async def process_all_state_stores_for_ids(
 
     store_ids: List[str] = []
 
-    # Batch the store links to check multiple at once
-    async def task(store_link: str):
-        store_id = await get_store_id_from_store_link(page, store_link)
-        store_ids.append(store_id)
+    # # Batch the store links to check multiple at once
+    # async def task(store_link: str):
+    #     store_id = await get_store_id_from_store_link(page, state, store_link)
+    #     store_ids.append(store_id)
 
-    tasks = [task(store_link) for store_link in store_links]
-    await asyncio.gather(*tasks)
+    # tasks = [task(store_link) for store_link in store_links]
+    # await batch_tasks(tasks)
+
+    for store_link in store_links:
+        store_id = store_link.split("/")[-1]
+        store_ids.append(store_id)
 
     save_store_ids_for_state(store_ids, state)
 

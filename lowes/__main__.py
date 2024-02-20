@@ -44,7 +44,8 @@ async def main():
     max_concurrency = int(args.concurrency)
     selected_script, is_async = SCRIPTS[script_number]
 
-    logger.info(f"Running the selected script: {selected_script.__name__}")
+    logger.info(f"[selected_script]: {selected_script.__name__}")
+    logger.info(f"[max_concurrency]: {max_concurrency}")
 
     if is_async:
         await async_run_with_playwright(selected_script, max_concurrency)

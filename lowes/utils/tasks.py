@@ -9,7 +9,7 @@ async def custom_task(sem: Semaphore, task: Coroutine[Any, Any, None]):
 
 async def batch_tasks(
     tasks: List[Coroutine[Any, Any, None]],
-    max_concurrency: int,
+    max_concurrency: int = 2,
 ):
     sem = Semaphore(max_concurrency)
     async_tasks = [custom_task(sem, task) for task in tasks]
