@@ -12,13 +12,13 @@ logger = get_logger()
 STATE_LINK_QUERY = "div[data-selector='str-storeDetailContainer'] .backyard.link"
 
 
-async def get_state_links(page: Page) -> list[str]:
+async def get_state_links(page: Page) -> List[str]:
     logger.info("Getting state links")
 
     raw_state_link_els = await page.query_selector_all(STATE_LINK_QUERY)
     # Skip the first two links, they are not states
     state_link_els = raw_state_link_els[2:]
-    state_links: list[str] = []
+    state_links: List[str] = []
 
     for state_link_el in state_link_els:
         if href := await state_link_el.get_attribute("href"):
@@ -26,7 +26,7 @@ async def get_state_links(page: Page) -> list[str]:
     return state_links
 
 
-def save_state_links(state_links: list[str]) -> None:
+def save_state_links(state_links: List[str]) -> None:
     logger.info("Saving state links")
 
     with open(get_output_path("state_links.txt"), "w", encoding="utf-8") as file:
