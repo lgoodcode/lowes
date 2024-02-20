@@ -8,7 +8,7 @@ from lowes.scripts.async_get_and_save_state_store_ids import (
 )
 from lowes.scripts.get_and_save_state_links import get_and_save_state_links
 from lowes.scripts.get_and_save_state_store_ids import get_and_save_state_store_ids
-from lowes.utils.async_playwright import async_run_with_playwright
+from lowes.utils.async_playwright import async_run_with_context
 from lowes.utils.logger import get_logger
 from lowes.utils.playwright import run_with_playwright
 
@@ -48,7 +48,7 @@ async def main():
     logger.info(f"[max_concurrency]: {max_concurrency}")
 
     if is_async:
-        await async_run_with_playwright(selected_script, max_concurrency)
+        await async_run_with_context(selected_script, max_concurrency)
     else:
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, run_with_playwright, selected_script)

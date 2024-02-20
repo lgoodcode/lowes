@@ -91,7 +91,7 @@ async def create_page(
     return page
 
 
-async def async_run_with_playwright(
+async def async_run_with_context(
     process: Callable[[BrowserContext], Awaitable[List[Coroutine[Any, Any, None]]]],
     max_concurrency: int,
 ) -> None:
