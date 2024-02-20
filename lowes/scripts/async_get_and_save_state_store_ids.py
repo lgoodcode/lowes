@@ -104,7 +104,7 @@ async def process_all_state_stores_for_ids(
         store_id = await get_store_id_from_store_link(page, store_link)
         store_ids.append(store_id)
 
-    tasks = [task(store_link) for store_link in store_links[:3]]
+    tasks = [task(store_link) for store_link in store_links]
     await asyncio.gather(*tasks)
 
     save_store_ids_for_state(store_ids, state)
@@ -132,8 +132,6 @@ async def async_get_and_save_state_store_ids(
         logger.info("No state links found, exiting")
         exit(1)
 
-    tasks = [
-        get_store_ids_for_state(context, state_link) for state_link in state_links[:3]
-    ]
+    tasks = [get_store_ids_for_state(context, state_link) for state_link in state_links]
 
     return tasks
