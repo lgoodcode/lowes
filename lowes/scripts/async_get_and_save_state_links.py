@@ -3,6 +3,7 @@ from playwright.async_api import Page, Playwright
 from lowes.constants import LOWES_STORES_URL
 from lowes.utils.async_playwright import create_page, navigate_to_page
 from lowes.utils.logger import get_logger
+from lowes.utils.proxies import ProxyManager
 from lowes.utils.utils import get_output_path
 
 logger = get_logger()
@@ -33,7 +34,8 @@ def save_state_links(state_links: list[str]) -> None:
 
 
 async def async_get_and_save_state_links(playwright: Playwright) -> None:
-    page = await create_page(playwright)
+    proxy_manager = ProxyManager()
+    page = await create_page(playwright, proxy_config=proxy_manager.get_next_proxy())
 
     try:
         await navigate_to_page(page, LOWES_STORES_URL)

@@ -1,4 +1,4 @@
-from typing import Awaitable, Callable, Optional
+from typing import Awaitable, Callable, Optional, Union, overload
 
 from playwright.async_api import (
     BrowserContext,
@@ -62,10 +62,25 @@ async def get_page(context: BrowserContext) -> Page:
     return page
 
 
+@overload
 async def create_page(
     playwright: Playwright, proxy_config: Optional[Proxy] = None
+) -> Page: ...
+
+
+@overload
+async def create_page(playwright: BrowserContext) -> Page: ...
+
+
+async def create_page(
+    playwright: Union[Playwright, BrowserContext], proxy_config: Optional[Proxy] = None
 ) -> Page:
-    context = await create_context(playwright, proxy_config)
+    context = (
+        playwright
+        if isinstance(playwright, BrowserContext)
+        else await create_context(playwright, proxy_config)
+    )
+
     page = await context.new_page()
     await stealth_async(page)
     return page
