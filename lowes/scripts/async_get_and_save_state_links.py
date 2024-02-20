@@ -1,9 +1,10 @@
-from playwright.async_api import Page, Playwright
+from typing import Any, Coroutine, List
+
+from playwright.async_api import BrowserContext, Page
 
 from lowes.constants import LOWES_STORES_URL
 from lowes.utils.async_playwright import create_page, navigate_to_page
 from lowes.utils.logger import get_logger
-from lowes.utils.proxies import ProxyManager
 from lowes.utils.utils import get_output_path
 
 logger = get_logger()
@@ -33,17 +34,14 @@ def save_state_links(state_links: list[str]) -> None:
             file.write(state_link + "\n")
 
 
-async def async_get_and_save_state_links(playwright: Playwright) -> None:
-    proxy_manager = ProxyManager()
-    page = await create_page(playwright, proxy_config=proxy_manager.get_next_proxy())
+async def async_get_and_save_state_links(
+    context: BrowserContext,
+) -> List[Coroutine[Any, Any, None]]:
+    page = await create_page(context)
 
-    try:
+    async def task() -> None:
         await navigate_to_page(page, LOWES_STORES_URL)
         state_links = await get_state_links(page)
         save_state_links(state_links)
 
-    except Exception as e:
-        logger.error(f"Error while processing the page - {e}")
-
-    finally:
-        await page.close()
+    return [task()]

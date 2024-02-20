@@ -2,18 +2,10 @@ import asyncio
 from os import path
 from typing import Any, Coroutine, List
 
-from playwright.async_api import BrowserContext, Page, Playwright
+from playwright.async_api import BrowserContext, Page
 
-from lowes.utils.async_playwright import (
-    create_context,
-    get_el,
-    get_page,
-    navigate_to_page,
-)
+from lowes.utils.async_playwright import get_el, get_page, navigate_to_page
 from lowes.utils.logger import get_logger
-from lowes.utils.proxies import ProxyManager
-
-# from lowes.utils.proxies import ProxyManager
 from lowes.utils.utils import create_directory, get_full_lowes_url, get_output_path
 
 logger = get_logger()
@@ -118,7 +110,7 @@ async def process_all_state_stores_for_ids(
     save_store_ids_for_state(store_ids, state)
 
 
-async def get_store_ids_for_state(context: BrowserContext, state_link: str):
+async def get_store_ids_for_state(context: BrowserContext, state_link: str) -> None:
     try:
         page = await get_page(context)
         state = state_link.split("/")[-2]
@@ -131,7 +123,7 @@ async def get_store_ids_for_state(context: BrowserContext, state_link: str):
 
 
 async def async_get_and_save_state_store_ids(
-    playwright: Playwright,
+    context: BrowserContext,
 ) -> List[Coroutine[Any, Any, None]]:
     create_directory(STATES_STORES_LINKS_DIR)
     state_links = read_state_links()
@@ -139,11 +131,6 @@ async def async_get_and_save_state_store_ids(
     if not state_links:
         logger.info("No state links found, exiting")
         exit(1)
-
-    proxy_manager = ProxyManager()
-    context = await create_context(
-        playwright, proxy_config=proxy_manager.get_next_proxy()
-    )
 
     tasks = [
         get_store_ids_for_state(context, state_link) for state_link in state_links[:3]

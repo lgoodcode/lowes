@@ -14,7 +14,7 @@ from playwright_stealth import stealth_async
 
 from lowes.constants import CHROMIUM_KWARGS
 from lowes.utils.logger import get_logger
-from lowes.utils.proxies import Proxy
+from lowes.utils.proxies import Proxy, ProxyManager
 from lowes.utils.tasks import batch_tasks
 
 logger = get_logger()
@@ -92,9 +92,21 @@ async def create_page(
 
 
 async def async_run_with_playwright(
-    process: Callable[[Playwright], Awaitable[List[Coroutine[Any, Any, None]]]],
+    process: Callable[[BrowserContext], Awaitable[List[Coroutine[Any, Any, None]]]],
     max_concurrency: int,
 ) -> None:
     async with async_playwright() as playwright:
-        tasks = await process(playwright)
-        await batch_tasks(tasks, max_concurrency)
+        proxy_manager = ProxyManager()
+        context = await create_context(
+            playwright, proxy_config=proxy_manager.get_next_proxy()
+        )
+
+        try:
+            tasks = await process(context)
+            await batch_tasks(tasks, max_concurrency)
+
+        except Exception as e:
+            logger.error(f"Error while processing the page - {e}")
+
+        finally:
+            await context.close()
