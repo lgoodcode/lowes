@@ -1,11 +1,24 @@
+import random
 from dataclasses import dataclass
 from os import getenv
 
 from dotenv import load_dotenv
 
+from lowes.utils.logger import get_logger
+
 load_dotenv()
 
-PROXY_URL = "http://customer-%s:%s@pr.oxylabs.io:7777"
+logger = get_logger()
+
+PROXY_URL = "http://customer-%s-sessid-%s:%s@pr.oxylabs.io:7777"
+HEXT_DIGITS = "0123456789ABCDEF"
+
+
+def generate_hex_id(length: int = 6) -> str:
+    id_str = ""
+    for _ in range(length):
+        id_str += random.choice(HEXT_DIGITS)
+    return id_str
 
 
 @dataclass
@@ -21,9 +34,6 @@ class Proxy:
         if not user or not password:
             raise Exception("Proxy not set")
 
-        # self.server = PROXY_URL % (user, password)
-        # self.username = user
-        # self.password = password
-        self.server = "216.185.62.133:3486"
-        self.username = "ssfogbsa"
-        self.password = "jrscgC07HA"
+        self.server = PROXY_URL % (user, generate_hex_id(), password)
+        self.username = user
+        self.password = password
