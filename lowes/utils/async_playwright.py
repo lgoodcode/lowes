@@ -3,6 +3,7 @@ from random import randint
 from typing import Any, Awaitable, Callable, Coroutine, List, Union
 
 from playwright.async_api import (
+    Browser,
     BrowserContext,
     ElementHandle,
     Page,
@@ -11,25 +12,33 @@ from playwright.async_api import (
     async_playwright,
 )
 from playwright_stealth import stealth_async
+from retry import retry
 
 from lowes.constants import CHROMIUM_KWARGS
 from lowes.utils.logger import get_logger
-from lowes.utils.proxy import Proxy
+from lowes.utils.proxy import ProxyManager
 from lowes.utils.tasks import batch_tasks
 
 logger = get_logger()
 
 
+@retry(tries=3, delay=1, backoff=2)
 async def navigate_to_page(page: Page, url: str) -> None:
     logger.debug(f"Navigating to {url.replace('\n', '')}")
 
     # Delay to simulate human behavior
-    await sleep(randint(2, 5))
-    await page.goto(url, wait_until="domcontentloaded")
+    await sleep(randint(1, 3))
+    await page.goto(url, wait_until="domcontentloaded", timeout=60_000)
+
+    if (
+        denied_el := await page.query_selector("body h1")
+    ) and await denied_el.text_content() == "Access Denied":
+        raise Exception(f"[ACCESS DENIED]: {url}")
 
     logger.debug(f"Arrived at {page.url}")
 
 
+@retry(tries=3, delay=1, backoff=2)
 async def get_el(page: Page, selector: str) -> ElementHandle:
     try:
         el = await page.wait_for_selector(selector, timeout=10_000, state="visible")
@@ -39,15 +48,24 @@ async def get_el(page: Page, selector: str) -> ElementHandle:
         return el
 
     except Exception as e:
-        raise Exception(f"Timed out: could not find selector {selector} - {e}") from e
+        raise Exception(f"[TIMEOUT]: Could not find selector {selector} - {e}") from e
 
 
-async def create_context(playwright: Playwright) -> BrowserContext:
-    proxy = Proxy()
+async def create_browser(playwright: Playwright) -> Browser:
+    proxy = ProxyManager().get_next_proxy()
     browser = await playwright.chromium.launch(
-        **CHROMIUM_KWARGS, proxy=ProxySettings(**proxy.__dict__)
+        **CHROMIUM_KWARGS,
+        proxy=ProxySettings(**proxy.__dict__),
     )
+    return browser
 
+
+async def create_context(playwright: Union[Playwright, Browser]) -> BrowserContext:
+    browser = (
+        await create_browser(playwright)
+        if isinstance(playwright, Playwright)
+        else playwright
+    )
     return await browser.new_context()
 
 
@@ -70,18 +88,18 @@ async def create_page(playwright: Union[Playwright, BrowserContext]) -> Page:
 
 
 async def async_run_with_context(
-    process: Callable[[BrowserContext], Awaitable[List[Coroutine[Any, Any, None]]]],
+    process: Callable[[Browser, int], Awaitable[List[Coroutine[Any, Any, None]]]],
     max_concurrency: int,
 ) -> None:
     async with async_playwright() as playwright:
-        context = await create_context(playwright)
+        browser = await create_browser(playwright)
 
         try:
-            tasks = await process(context)
+            tasks = await process(browser, max_concurrency)
             await batch_tasks(tasks, max_concurrency)
 
         except Exception as e:
-            logger.error(f"Error while processing the page - {e}")
+            raise e  # Bubble up the exception
 
         finally:
-            await context.close()
+            await browser.close()

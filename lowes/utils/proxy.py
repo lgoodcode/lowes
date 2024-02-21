@@ -1,24 +1,48 @@
-import random
 from dataclasses import dataclass
-from os import getenv
+from typing import Any
 
-from dotenv import load_dotenv
-
+from lowes.constants import PROXIES_FILE_PATH
 from lowes.utils.logger import get_logger
-
-load_dotenv()
 
 logger = get_logger()
 
-PROXY_URL = "http://customer-%s-sessid-%s:%s@pr.oxylabs.io:7777"
-HEXT_DIGITS = "0123456789ABCDEF"
+
+class Singleton(object):
+    _instance = None
+
+    def __new__(cls, *args: Any, **kwargs: Any):
+        """
+        Ensures only one instance of the class is created.
+
+        Args:
+            *args: Arguments passed to the class constructor.
+            **kwargs: Keyword arguments passed to the class constructor.
+
+        Returns:
+            The instance of the class.
+        """
+        if not cls._instance:
+            cls._instance = super().__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        """
+        Prevents further initialization after the first instance is created.
+
+        Args:
+            *args: Arguments passed to the class constructor.
+            **kwargs: Keyword arguments passed to the class constructor.
+        """
+        if self.__class__._instance is not self:
+            raise RuntimeError("Call __init__ only once!")
 
 
-def generate_hex_id(length: int = 6) -> str:
-    id_str = ""
-    for _ in range(length):
-        id_str += random.choice(HEXT_DIGITS)
-    return id_str
+def read_proxy_list() -> list[str]:
+    logger.info("Reading proxy list")
+
+    with open(PROXIES_FILE_PATH, "r", encoding="utf-8") as file:
+        proxies = file.readlines()
+    return proxies
 
 
 @dataclass
@@ -26,14 +50,39 @@ class Proxy:
     server: str
     username: str
     password: str
+    active: bool = False
+
+    def __init__(self, proxies: str):
+        proxies = proxies.strip()
+        ip, port, username, password = proxies.split(":")
+        self.server = ip + ":" + port
+        self.username = username
+        self.password = password
+
+
+@dataclass
+class ProxyManager(Singleton):
+    proxy_list: list[Proxy]
+    instantiated: bool = False
+    current_index: int = 0
 
     def __init__(self):
-        user = getenv("PROXY_USER")
-        password = getenv("PROXY_PASS")
+        if self.instantiated:
+            return
 
-        if not user or not password:
-            raise Exception("Proxy not set")
+        proxies = read_proxy_list()
+        self.proxy_list = [Proxy(proxy) for proxy in proxies]
+        self.instantiated = True
 
-        self.server = PROXY_URL % (user, generate_hex_id(), password)
-        self.username = user
-        self.password = password
+    def get_next_proxy(self) -> Proxy:
+        """Returns the next proxy in the list."""
+        current_proxy = self.proxy_list[self.current_index]
+        current_proxy.active = False
+
+        self.current_index = (self.current_index + 1) % len(self.proxy_list)
+
+        next_proxy = self.proxy_list[self.current_index]
+        next_proxy.active = True
+
+        logger.info(f"[Proxy] {next_proxy.server}")
+        return next_proxy

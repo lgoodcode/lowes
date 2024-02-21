@@ -1,14 +1,19 @@
 from os import path
-from typing import Any, Coroutine, List, Union
+from typing import Any, Coroutine, List
 
-from playwright.async_api import BrowserContext, Page
+from playwright.async_api import BrowserContext, Page, Playwright
 
 from lowes.constants import (
     STATE_STORE_INFO_DIR,
     STATE_STORE_LINKS_PATH,
     STATE_STORES_LINKS_DIR,
 )
-from lowes.utils.async_playwright import get_el, get_page, navigate_to_page
+from lowes.utils.async_playwright import (
+    create_context,
+    get_el,
+    get_page,
+    navigate_to_page,
+)
 from lowes.utils.logger import get_logger
 from lowes.utils.tasks import batch_tasks
 from lowes.utils.utils import create_directory, get_full_lowes_url
@@ -146,24 +151,22 @@ async def process_all_state_stores(
 
 async def get_store_infos_for_state(context: BrowserContext, state_link: str) -> None:
     state = state_link.split("/")[-2]
-    page: Union[Page, None] = None
+    page = await get_page(context)
 
     try:
-        page = await get_page(context)
         store_links = await get_state_store_links(page, state_link, state)
         await process_all_state_stores(page, store_links, state)
-        await page.close()
 
     except Exception as e:
         logger.error(f"[{state}]: Error processing {state_link}: {e}")
 
     finally:
-        if page:
-            await page.close()
+        await page.close()
 
 
 async def async_get_and_save_state_store_info(
-    context: BrowserContext,
+    playwright: Playwright,
+    max_contexts: int,
 ) -> List[Coroutine[Any, Any, None]]:
     create_directory(STATE_STORE_LINKS_PATH)
     state_links = read_state_links()
@@ -172,8 +175,11 @@ async def async_get_and_save_state_store_info(
         logger.info("No state links found, exiting")
         exit(1)
 
-    tasks = [
-        get_store_infos_for_state(context, state_link) for state_link in state_links
-    ]
+    tasks: list[Coroutine[Any, Any, None]] = []
+    contexts = [await create_context(playwright) for _ in range(max_contexts)]
+
+    for i, state_link in enumerate(state_links):
+        context = contexts[i % len(contexts)]  # Round robin assignment
+        tasks.append(get_store_infos_for_state(context, state_link))
 
     return tasks

@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import traceback
 from time import time
 from typing import Any, List
 
@@ -45,10 +46,14 @@ async def main():
     logger.info(f"[selected_script]: {selected_script.__name__}")
     logger.info(f"[max_concurrency]: {max_concurrency}")
 
-    await async_run_with_context(selected_script, max_concurrency)
+    try:
+        await async_run_with_context(selected_script, max_concurrency)
+        logger.info(f"{selected_script.__name__} completed successfully")
+        logger.info(f"Time taken: {time() - start_time:.2f} seconds")
 
-    logger.info(f"{selected_script.__name__} completed successfully")
-    logger.info(f"Time taken: {time() - start_time:.2f} seconds")
+    except Exception as e:
+        error_message = f"[ERROR] - {e}\n{traceback.format_exc()}"
+        logger.error(error_message)
 
 
 # Run the selected script with Playwright
