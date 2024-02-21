@@ -15,3 +15,7 @@ CHROMIUM_KWARGS: Dict[str, Any] = {
 
 LOWES_URL = "https://www.lowes.com"
 LOWES_STORES_URL = "https://www.lowes.com/Lowes-Stores"
+
+STATE_STORE_LINKS_PATH = path.join(OUTPUT_DIR, "state_links.txt")
+STATE_STORES_LINKS_DIR = path.join(OUTPUT_DIR, "states_stores_links")
+STATE_STORE_INFO_DIR = path.join(OUTPUT_DIR, "states_store_infos")

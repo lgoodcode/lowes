@@ -2,10 +2,9 @@ from typing import Any, Coroutine, List
 
 from playwright.async_api import BrowserContext, Page
 
-from lowes.constants import LOWES_STORES_URL
+from lowes.constants import LOWES_STORES_URL, STATE_STORE_LINKS_PATH
 from lowes.utils.async_playwright import create_page, navigate_to_page
 from lowes.utils.logger import get_logger
-from lowes.utils.utils import get_output_path
 
 logger = get_logger()
 
@@ -29,7 +28,7 @@ async def get_state_links(page: Page) -> List[str]:
 def save_state_links(state_links: List[str]) -> None:
     logger.info("Saving state links")
 
-    with open(get_output_path("state_links.txt"), "w", encoding="utf-8") as file:
+    with open(STATE_STORE_LINKS_PATH, "w", encoding="utf-8") as file:
         for state_link in state_links:
             file.write(state_link + "\n")
 

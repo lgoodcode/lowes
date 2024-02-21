@@ -2,6 +2,9 @@ from os import mkdir, path
 from urllib.parse import urljoin
 
 from lowes.constants import LOWES_URL, OUTPUT_DIR
+from lowes.utils.logger import get_logger
+
+logger = get_logger()
 
 
 def create_directory(directory_path: str):
@@ -11,14 +14,7 @@ def create_directory(directory_path: str):
         directory_path = path.join(OUTPUT_DIR, directory_path)
     if not path.exists(directory_path):
         mkdir(directory_path)
-        print(f"Directory created successfully: {directory_path}")
-
-
-def get_output_path(file_path: str) -> str:
-    """Return the path to a file in the /output directory."""
-
-    create_directory(OUTPUT_DIR)  # Ensure output directory exists
-    return path.join(OUTPUT_DIR, file_path)
+        logger.info(f"Directory created successfully: {directory_path}")
 
 
 def get_full_lowes_url(relative_url: str) -> str:

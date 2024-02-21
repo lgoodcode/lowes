@@ -1,26 +1,21 @@
 import argparse
 import asyncio
 from time import time
-from typing import Any, List, Tuple
+from typing import Any, List
 
 from lowes.scripts.async_get_and_save_state_links import async_get_and_save_state_links
 from lowes.scripts.async_get_and_save_state_store_info import (
     async_get_and_save_state_store_info,
 )
-from lowes.scripts.get_and_save_state_links import get_and_save_state_links
-from lowes.scripts.get_and_save_state_store_ids import get_and_save_state_store_ids
 from lowes.utils.async_playwright import async_run_with_context
 from lowes.utils.logger import get_logger
-from lowes.utils.playwright import run_with_playwright
 
 logger = get_logger()
 
 MAX_CONCURRENCY = 8
-SCRIPTS: List[Tuple[Any, bool]] = [
-    (get_and_save_state_links, False),
-    (get_and_save_state_store_ids, False),
-    (async_get_and_save_state_links, True),
-    (async_get_and_save_state_store_info, True),
+SCRIPTS: List[Any] = [
+    async_get_and_save_state_links,
+    async_get_and_save_state_store_info,
 ]
 
 
@@ -31,7 +26,7 @@ async def main():
         type=int,
         choices=[i for i in range(len(SCRIPTS))],
         help="Choose the script to run:\n"
-        + "\n".join(f"{script.__name__}\n" for script, _ in SCRIPTS),
+        + "\n".join(f"{script.__name__}\n" for script in SCRIPTS),
     )
     parser.add_argument(
         "-c",
@@ -44,17 +39,13 @@ async def main():
     args = parser.parse_args()
     script_number = int(args.script_number)
     max_concurrency = min(int(args.concurrency), MAX_CONCURRENCY)
-    selected_script, is_async = SCRIPTS[script_number]
+    selected_script = SCRIPTS[script_number]
 
     start_time = time()
     logger.info(f"[selected_script]: {selected_script.__name__}")
     logger.info(f"[max_concurrency]: {max_concurrency}")
 
-    if is_async:
-        await async_run_with_context(selected_script, max_concurrency)
-    else:
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, run_with_playwright, selected_script)
+    await async_run_with_context(selected_script, max_concurrency)
 
     logger.info(f"{selected_script.__name__} completed successfully")
     logger.info(f"Time taken: {time() - start_time:.2f} seconds")

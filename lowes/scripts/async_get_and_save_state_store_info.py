@@ -3,25 +3,22 @@ from typing import Any, Coroutine, List, Union
 
 from playwright.async_api import BrowserContext, Page
 
+from lowes.constants import (
+    STATE_STORE_INFO_DIR,
+    STATE_STORE_LINKS_PATH,
+    STATE_STORES_LINKS_DIR,
+)
 from lowes.utils.async_playwright import get_el, get_page, navigate_to_page
 from lowes.utils.logger import get_logger
 from lowes.utils.tasks import batch_tasks
-from lowes.utils.utils import create_directory, get_full_lowes_url, get_output_path
+from lowes.utils.utils import create_directory, get_full_lowes_url
 
 logger = get_logger()
 
-STATES_STORES_LINKS_DIR = "states_stores_links"
+
 STATES_STORES_IDS_DIR = "states_stores"
 STORE_LINKS_SELECTOR = ".city-name a"
-# STORE_NAME_SELECTOR = "#app #mainContent div header .title"
 STORE_ADDRESS_SELECTOR = "#app #mainContent div header .address a"
-
-
-# async def get_store_name(page: Page) -> str:
-#     store_name_el = await get_el(page, STORE_NAME_SELECTOR)
-#     raw_store_name_text = await store_name_el.inner_text()
-#     store_name = raw_store_name_text.split()[0]
-#     return store_name
 
 
 class StoreInfo:
@@ -62,7 +59,7 @@ async def parse_store_page(page: Page, store_id: str) -> StoreInfo:
 
 def read_state_links() -> List[str]:
     logger.info("Reading state links")
-    with open(get_output_path("state_links.txt"), "r", encoding="utf-8") as file:
+    with open(STATE_STORE_LINKS_PATH, "r", encoding="utf-8") as file:
         state_links = file.readlines()
     return state_links
 
@@ -90,11 +87,10 @@ async def get_state_store_links(page: Page, state_link: str, state: str) -> List
 def save_store_links(store_links: List[str], state: str) -> None:
     logger.info(f"[{state}] - Saving store links")
 
-    create_directory(STATES_STORES_LINKS_DIR)
-    state_links_path = get_output_path(
-        path.join(STATES_STORES_LINKS_DIR, f"{state.lower()}_store_links.txt")
-    )
-    with open(state_links_path, "w", encoding="utf-8") as file:
+    create_directory(STATE_STORES_LINKS_DIR)
+    file_path = path.join(STATE_STORES_LINKS_DIR, f"{state.lower()}_store_links.txt")
+
+    with open(file_path, "w", encoding="utf-8") as file:
         for store_link in store_links:
             file.write(store_link + "\n")
 
@@ -118,11 +114,10 @@ async def process_store_page(page: Page, state: str, store_link: str) -> StoreIn
 def save_store_infos_for_state(store_infos: List[StoreInfo], state: str) -> None:
     logger.info(f"[{state}] - Saving store info")
 
-    create_directory(STATES_STORES_IDS_DIR)
-    store_ids_path = get_output_path(
-        path.join(STATES_STORES_IDS_DIR, f"{state.lower()}_stores.txt")
-    )
-    with open(store_ids_path, "w", encoding="utf-8") as file:
+    create_directory(STATE_STORE_INFO_DIR)
+    file_path = path.join(STATE_STORE_INFO_DIR, f"{state.lower()}_stores.txt")
+
+    with open(file_path, "w", encoding="utf-8") as file:
         for store_info in store_infos:
             file.write(str(store_info) + "\n")
 
@@ -170,7 +165,7 @@ async def get_store_infos_for_state(context: BrowserContext, state_link: str) ->
 async def async_get_and_save_state_store_info(
     context: BrowserContext,
 ) -> List[Coroutine[Any, Any, None]]:
-    create_directory(STATES_STORES_LINKS_DIR)
+    create_directory(STATE_STORE_LINKS_PATH)
     state_links = read_state_links()
 
     if not state_links:
@@ -178,7 +173,7 @@ async def async_get_and_save_state_store_info(
         exit(1)
 
     tasks = [
-        get_store_infos_for_state(context, state_link) for state_link in state_links[:1]
+        get_store_infos_for_state(context, state_link) for state_link in state_links
     ]
 
     return tasks
