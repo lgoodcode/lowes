@@ -52,7 +52,7 @@ async def main():
         logger.info(f"Time taken: {time() - start_time:.2f} seconds")
 
     except Exception as e:
-        error_message = f"[ERROR] - {e}\n{traceback.format_exc()}"
+        error_message = f"{e}\n{traceback.format_exc()}"
         logger.error(error_message)
 
 

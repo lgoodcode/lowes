@@ -158,7 +158,7 @@ async def get_store_infos_for_state(context: BrowserContext, state_link: str) ->
         await process_all_state_stores(page, store_links, state)
 
     except Exception as e:
-        logger.error(f"[{state}]: Error processing {state_link}: {e}")
+        logger.error(f"[{state}] - {e}")
 
     finally:
         await page.close()

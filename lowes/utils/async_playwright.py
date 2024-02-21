@@ -3,7 +3,6 @@ from random import randint
 from typing import Any, Awaitable, Callable, Coroutine, List, Union
 
 from playwright.async_api import (
-    Browser,
     BrowserContext,
     ElementHandle,
     Page,
@@ -33,7 +32,7 @@ async def navigate_to_page(page: Page, url: str) -> None:
     if (
         denied_el := await page.query_selector("body h1")
     ) and await denied_el.text_content() == "Access Denied":
-        raise Exception(f"[ACCESS DENIED]: {url}")
+        raise Exception(f"Access denied - {url}")
 
     logger.debug(f"Arrived at {page.url}")
 
@@ -51,20 +50,10 @@ async def get_el(page: Page, selector: str) -> ElementHandle:
         raise Exception(f"[TIMEOUT]: Could not find selector {selector} - {e}") from e
 
 
-async def create_browser(playwright: Playwright) -> Browser:
+async def create_context(playwright: Playwright) -> BrowserContext:
     proxy = ProxyManager().get_next_proxy()
     browser = await playwright.chromium.launch(
-        **CHROMIUM_KWARGS,
-        proxy=ProxySettings(**proxy.__dict__),
-    )
-    return browser
-
-
-async def create_context(playwright: Union[Playwright, Browser]) -> BrowserContext:
-    browser = (
-        await create_browser(playwright)
-        if isinstance(playwright, Playwright)
-        else playwright
+        **CHROMIUM_KWARGS, proxy=ProxySettings(**proxy.__dict__)
     )
     return await browser.new_context()
 
@@ -88,18 +77,9 @@ async def create_page(playwright: Union[Playwright, BrowserContext]) -> Page:
 
 
 async def async_run_with_context(
-    process: Callable[[Browser, int], Awaitable[List[Coroutine[Any, Any, None]]]],
+    process: Callable[[Playwright, int], Awaitable[List[Coroutine[Any, Any, None]]]],
     max_concurrency: int,
 ) -> None:
     async with async_playwright() as playwright:
-        browser = await create_browser(playwright)
-
-        try:
-            tasks = await process(browser, max_concurrency)
-            await batch_tasks(tasks, max_concurrency)
-
-        except Exception as e:
-            raise e  # Bubble up the exception
-
-        finally:
-            await browser.close()
+        tasks = await process(playwright, max_concurrency)
+        await batch_tasks(tasks, max_concurrency)

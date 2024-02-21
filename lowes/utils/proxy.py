@@ -35,14 +35,8 @@ class Singleton(object):
         """
         if self.__class__._instance is not self:
             raise RuntimeError("Call __init__ only once!")
-
-
-def read_proxy_list() -> list[str]:
-    logger.info("Reading proxy list")
-
-    with open(PROXIES_FILE_PATH, "r", encoding="utf-8") as file:
-        proxies = file.readlines()
-    return proxies
+        if self._instance:
+            return
 
 
 @dataclass
@@ -50,7 +44,6 @@ class Proxy:
     server: str
     username: str
     password: str
-    active: bool = False
 
     def __init__(self, proxies: str):
         proxies = proxies.strip()
@@ -70,19 +63,21 @@ class ProxyManager(Singleton):
         if self.instantiated:
             return
 
-        proxies = read_proxy_list()
+        proxies = self.read_proxy_list()
         self.proxy_list = [Proxy(proxy) for proxy in proxies]
         self.instantiated = True
 
+    def read_proxy_list(self) -> list[str]:
+        logger.info("Reading proxy list")
+
+        with open(PROXIES_FILE_PATH, "r", encoding="utf-8") as file:
+            proxies = file.readlines()
+        return proxies
+
     def get_next_proxy(self) -> Proxy:
         """Returns the next proxy in the list."""
-        current_proxy = self.proxy_list[self.current_index]
-        current_proxy.active = False
-
         self.current_index = (self.current_index + 1) % len(self.proxy_list)
-
         next_proxy = self.proxy_list[self.current_index]
-        next_proxy.active = True
 
         logger.info(f"[Proxy] {next_proxy.server}")
         return next_proxy
