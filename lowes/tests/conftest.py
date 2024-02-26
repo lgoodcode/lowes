@@ -37,7 +37,7 @@ async def browser_factory(
     browsers: List[Browser] = []
 
     async def launch() -> Browser:
-        browser = await create_browser(playwright)
+        browser = await create_browser(playwright, headless=True)
         browsers.append(browser)
         return browser
 

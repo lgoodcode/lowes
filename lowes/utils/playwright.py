@@ -12,17 +12,26 @@ from playwright.async_api import (
     async_playwright,
 )
 from playwright_stealth import stealth_async
-from retry import retry
 
 from lowes.constants import CHROMIUM_KWARGS
 from lowes.utils.logger import get_logger
 from lowes.utils.proxy import ProxyManager
+from lowes.utils.retry import retry
 from lowes.utils.tasks import batch_tasks
 
 logger = get_logger()
 
 
-@retry(tries=3, delay=1, backoff=2)
+@retry()
+async def get_el(page: Page, selector: str, timeout: int = 10_000) -> ElementHandle:
+    el = await page.wait_for_selector(selector, timeout=timeout, state="visible")
+
+    if not el:
+        raise Exception(f"Could not find selector {selector}")
+    return el
+
+
+# @retry(tries=3, delay=1, backoff=2)
 async def navigate_to_page(page: Page, url: str) -> None:
     logger.debug(f"Navigating to {url.replace('\n', '')}")
 
@@ -38,23 +47,10 @@ async def navigate_to_page(page: Page, url: str) -> None:
     logger.debug(f"Arrived at {page.url}")
 
 
-@retry(tries=3, delay=1, backoff=2)
-async def get_el(page: Page, selector: str) -> ElementHandle:
-    try:
-        el = await page.wait_for_selector(selector, timeout=10_000, state="visible")
-
-        if not el:
-            raise Exception(f"Could not find selector {selector}")
-        return el
-
-    except Exception as e:
-        raise Exception(f"[TIMEOUT]: Could not find selector {selector} - {e}") from e
-
-
-async def create_browser(playwright: Playwright) -> Browser:
+async def create_browser(playwright: Playwright, headless: bool = False) -> Browser:
     proxy = ProxyManager().get_next_proxy()
     browser = await playwright.chromium.launch(
-        **CHROMIUM_KWARGS, proxy=ProxySettings(**proxy.__dict__)
+        **CHROMIUM_KWARGS, headless=headless, proxy=ProxySettings(**proxy.__dict__)
     )
     return browser
 
