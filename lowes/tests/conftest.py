@@ -10,7 +10,7 @@ from playwright.async_api import (
     async_playwright,
 )
 
-from lowes.utils.async_playwright import create_browser
+from lowes.utils.playwright import create_browser
 
 
 # https://pytest-asyncio.readthedocs.io/en/latest/reference/fixtures/index.html

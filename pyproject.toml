@@ -48,4 +48,3 @@ exclude = [
 # tests with `@pytest.mark.asyncio`
 asyncio_mode = "auto"
 addopts = ["--headed", "--browser=chromium", "--import-mode=prepend"]
-python_paths = ["lowes"]
