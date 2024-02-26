@@ -34,11 +34,7 @@ or in Windows:
 
 ### First time setup
 
-1. Install the Poetry, the package manager:
-
-```bash
-pip install poetry
-```
+1. Install [Poetry](https://python-poetry.org/docs/), the package manager
 
 2. Install the dependencies:
 
@@ -53,5 +49,5 @@ default is `2` and a maximum of `8`. This maximum is to prevent getting rate
 limited by the server.
 
 ```bash
-python -m lowes {script_number} [-c {number_of_workers}]
+python .\lowes\ {script_number} [-c {number_of_workers}]
 ```

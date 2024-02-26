@@ -15,6 +15,7 @@ coloredlogs = "^15.0.1"
 asyncio = "^3.4.3"
 python-dotenv = "^1.0.1"
 retry = "^0.9.2"
+pytest-asyncio = "^0.23.5"
 
 [build-system]
 requires = ["poetry-core"]
@@ -41,3 +42,10 @@ exclude = [
     "**/.vscode",
     "**/__pycache__",
 ]
+
+[tool.pytest.ini_options]
+# Allows async tests to run without the need for the `pytest-asyncio` plugin and marking
+# tests with `@pytest.mark.asyncio`
+asyncio_mode = "auto"
+addopts = ["--headed", "--browser=chromium", "--import-mode=prepend"]
+python_paths = ["lowes"]

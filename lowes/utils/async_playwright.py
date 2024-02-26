@@ -3,6 +3,7 @@ from random import randint
 from typing import Any, Awaitable, Callable, Coroutine, List, Union
 
 from playwright.async_api import (
+    Browser,
     BrowserContext,
     ElementHandle,
     Page,
@@ -50,11 +51,16 @@ async def get_el(page: Page, selector: str) -> ElementHandle:
         raise Exception(f"[TIMEOUT]: Could not find selector {selector} - {e}") from e
 
 
-async def create_context(playwright: Playwright) -> BrowserContext:
+async def create_browser(playwright: Playwright) -> Browser:
     proxy = ProxyManager().get_next_proxy()
     browser = await playwright.chromium.launch(
         **CHROMIUM_KWARGS, proxy=ProxySettings(**proxy.__dict__)
     )
+    return browser
+
+
+async def create_context(playwright: Playwright) -> BrowserContext:
+    browser = await create_browser(playwright)
     return await browser.new_context()
 
 
