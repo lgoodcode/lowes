@@ -8,13 +8,8 @@ from lowes.constants import (
     STATE_STORE_LINKS_PATH,
     STATE_STORES_LINKS_DIR,
 )
-from lowes.utils.async_playwright import (
-    create_context,
-    get_el,
-    get_page,
-    navigate_to_page,
-)
 from lowes.utils.logger import get_logger
+from lowes.utils.playwright import create_context, get_el, get_page, navigate_to_page
 from lowes.utils.tasks import batch_tasks
 from lowes.utils.utils import create_directory, get_full_lowes_url
 
@@ -164,7 +159,7 @@ async def get_store_infos_for_state(context: BrowserContext, state_link: str) ->
         await page.close()
 
 
-async def async_get_and_save_state_store_info(
+async def get_and_save_state_store_info(
     playwright: Playwright,
     max_contexts: int,
 ) -> List[Coroutine[Any, Any, None]]:

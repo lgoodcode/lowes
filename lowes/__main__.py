@@ -4,19 +4,17 @@ import traceback
 from time import time
 from typing import Any, List
 
-from lowes.scripts.async_get_and_save_state_links import async_get_and_save_state_links
-from lowes.scripts.async_get_and_save_state_store_info import (
-    async_get_and_save_state_store_info,
-)
-from lowes.utils.async_playwright import async_run_with_context
+from lowes.scripts.get_and_save_state_links import get_and_save_state_links
+from lowes.scripts.get_and_save_state_store_info import get_and_save_state_store_info
 from lowes.utils.logger import get_logger
+from lowes.utils.playwright import run_with_context
 
 logger = get_logger()
 
 MAX_CONCURRENCY = 8
 SCRIPTS: List[Any] = [
-    async_get_and_save_state_links,
-    async_get_and_save_state_store_info,
+    get_and_save_state_links,
+    get_and_save_state_store_info,
 ]
 
 
@@ -47,7 +45,7 @@ async def main():
     logger.info(f"[max_concurrency]: {max_concurrency}")
 
     try:
-        await async_run_with_context(selected_script, max_concurrency)
+        await run_with_context(selected_script, max_concurrency)
         logger.info(f"{selected_script.__name__} completed successfully")
         logger.info(f"Time taken: {time() - start_time:.2f} seconds")
 

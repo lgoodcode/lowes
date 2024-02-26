@@ -3,8 +3,8 @@ from typing import Any, Coroutine, List
 from playwright.async_api import BrowserContext, Page
 
 from lowes.constants import LOWES_STORES_URL, STATE_STORE_LINKS_PATH
-from lowes.utils.async_playwright import create_page, navigate_to_page
 from lowes.utils.logger import get_logger
+from lowes.utils.playwright import create_page, navigate_to_page
 
 logger = get_logger()
 
@@ -33,7 +33,7 @@ def save_state_links(state_links: List[str]) -> None:
             file.write(state_link + "\n")
 
 
-async def async_get_and_save_state_links(
+async def get_and_save_state_links(
     context: BrowserContext,
 ) -> List[Coroutine[Any, Any, None]]:
     page = await create_page(context)
