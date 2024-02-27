@@ -4,8 +4,8 @@ import traceback
 from time import time
 from typing import Any, List
 
-from lowes.scripts.get_and_save_state_links import get_and_save_state_links
-from lowes.scripts.get_and_save_state_store_info import get_and_save_state_store_info
+from lowes.scripts.retrieve_store_info import retrieve_store_info
+from lowes.scripts.retrieve_store_links import retrieve_store_links
 from lowes.utils.logger import get_logger
 from lowes.utils.playwright import run_with_context
 
@@ -13,8 +13,8 @@ logger = get_logger()
 
 MAX_CONCURRENCY = 8
 SCRIPTS: List[Any] = [
-    get_and_save_state_links,
-    get_and_save_state_store_info,
+    retrieve_store_links,
+    retrieve_store_info,
 ]
 
 

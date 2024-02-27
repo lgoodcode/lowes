@@ -33,7 +33,7 @@ def save_state_links(state_links: List[str]) -> None:
             file.write(state_link + "\n")
 
 
-async def get_and_save_state_links(
+async def retrieve_store_links(
     context: BrowserContext,
 ) -> List[Coroutine[Any, Any, None]]:
     page = await create_page(context)

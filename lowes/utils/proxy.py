@@ -72,6 +72,9 @@ class ProxyManager(Singleton):
 
         with open(PROXIES_FILE_PATH, "r", encoding="utf-8") as file:
             proxies = file.readlines()
+
+        if not len(proxies):
+            raise Exception("No proxies found")
         return proxies
 
     def get_next_proxy(self) -> Proxy:

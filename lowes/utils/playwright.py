@@ -31,7 +31,7 @@ async def get_el(page: Page, selector: str, timeout: int = 10_000) -> ElementHan
     return el
 
 
-# @retry(tries=3, delay=1, backoff=2)
+@retry(delay=3, backoff=2)  # Extra delay in case the page was denied
 async def navigate_to_page(page: Page, url: str) -> None:
     logger.debug(f"Navigating to {url.replace('\n', '')}")
 

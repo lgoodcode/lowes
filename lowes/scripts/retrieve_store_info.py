@@ -159,7 +159,7 @@ async def get_store_infos_for_state(context: BrowserContext, state_link: str) ->
         await page.close()
 
 
-async def get_and_save_state_store_info(
+async def retrieve_store_info(
     playwright: Playwright,
     max_contexts: int,
 ) -> List[Coroutine[Any, Any, None]]:
