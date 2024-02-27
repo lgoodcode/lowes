@@ -1,7 +1,11 @@
-## VSCode Python Development
+## Initial setup
 
-1. Install the `Python Extension Pack` in VSCode.
-2. Open your JSON settings
+### VSCode Python Development
+
+1. Install the `Python Extension Pack` in VSCode
+2. Install `Pylance` extension
+3. Install `Mypy Type Checker` extension
+4. Open your JSON settings
     1. Press `F1` and type `Preferences: Open Settings (JSON)`
     2. Add the following settings:
         ```json
@@ -14,7 +18,7 @@
           },
         ```
 
-## Initializing the virtual environment
+### Initializing the virtual environment
 
 Always, when starting a new terminal, you need to activate the virtual environment:
 
@@ -28,16 +32,28 @@ or in Windows:
 .\venv\Scripts\Activate.ps1
 ```
 
-### First time
+### First time setup
 
-1. Install `setuptools`:
+1. Install [Poetry](https://python-poetry.org/docs/), the package manager
+
+2. Install the dependencies:
 
 ```bash
-pip install --upgrade setuptools
+poetry install
 ```
 
-2. Install the modules:
+## Running the code
+
+Specify the script number and optionally the nubmer of concurrent workers. The
+default is `2` and a maximum of `8`. This maximum is to prevent getting rate
+limited by the server.
 
 ```bash
-pip install -r requirements.txt
+python .\lowes\ {script_number} [-c {number_of_workers}]
+```
+
+## Running the tests
+
+```bash
+pytest
 ```

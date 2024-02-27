@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "lowes"
+version = "0.1.0"
+description = ""
+authors = ["Lawrence Good <lawrence.good55@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pytest-playwright = "^0.4.4"
+mypy = "^1.8.0"
+playwright-stealth = "^1.0.6"
+setuptools = "^69.1.0"
+coloredlogs = "^15.0.1"
+asyncio = "^3.4.3"
+python-dotenv = "^1.0.1"
+pytest-asyncio = "0.21.1"     # https://github.com/microsoft/playwright-python/blob/main/local-requirements.txt
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+max-line-length = 120
+typeCheckingMode = "strict"
+reportMissingImports = true
+reportMissingTypeStubs = false
+include = ["**/*.py"]
+
+[tool.pytest.ini_options]
+# Allows async tests to run without the need for the `pytest-asyncio` plugin and marking
+# tests with `@pytest.mark.asyncio`
+asyncio_mode = "auto"
+addopts = ["--browser=chromium", "--import-mode=prepend"]
+log_cli_level = "ERROR"
