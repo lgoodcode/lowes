@@ -51,3 +51,9 @@ limited by the server.
 ```bash
 python .\lowes\ {script_number} [-c {number_of_workers}]
 ```
+
+## Running the tests
+
+```bash
+pytest
+```
