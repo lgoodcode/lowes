@@ -9,6 +9,7 @@ from playwright.async_api import (
     Playwright,
     async_playwright,
 )
+from playwright_stealth import stealth_async
 
 from lowes.utils.playwright import create_browser
 
@@ -37,7 +38,7 @@ async def browser_factory(
     browsers: List[Browser] = []
 
     async def launch() -> Browser:
-        browser = await create_browser(playwright, headless=True)
+        browser = await create_browser(playwright, headless=False)
         browsers.append(browser)
         return browser
 
@@ -83,5 +84,6 @@ async def context(
 @pytest.fixture
 async def page(context: BrowserContext) -> AsyncGenerator[Page, None]:
     page = await context.new_page()
+    await stealth_async(page)
     yield page
     await page.close()

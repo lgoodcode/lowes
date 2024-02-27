@@ -74,16 +74,6 @@ async def get_store_links(page: Page) -> List[str]:
     return store_links
 
 
-async def get_state_store_links(page: Page, state_link: str, state: str) -> List[str]:
-    """Navigate to list of all stores in the state, get all the store links,
-    save them to a file, and return them."""
-
-    await navigate_to_page(page, get_full_lowes_url(state_link))
-    store_links = await get_store_links(page)
-    save_store_links(store_links, state)
-    return store_links
-
-
 def save_store_links(store_links: List[str], state: str) -> None:
     logger.info(f"[{state}] - Saving store links")
 
@@ -95,6 +85,16 @@ def save_store_links(store_links: List[str], state: str) -> None:
             file.write(store_link + "\n")
 
     logger.info(f"[{state}] - Store links saved successfully")
+
+
+async def get_state_store_links(page: Page, state_link: str, state: str) -> List[str]:
+    """Navigate to list of all stores in the state, get all the store links,
+    save them to a file, and return them."""
+
+    await navigate_to_page(page, get_full_lowes_url(state_link))
+    store_links = await get_store_links(page)
+    save_store_links(store_links, state)
+    return store_links
 
 
 async def process_store_page(page: Page, state: str, store_link: str) -> StoreInfo:
@@ -160,8 +160,7 @@ async def get_store_infos_for_state(context: BrowserContext, state_link: str) ->
 
 
 async def retrieve_store_info(
-    playwright: Playwright,
-    max_contexts: int,
+    playwright: Playwright, max_contexts: int
 ) -> List[Coroutine[Any, Any, None]]:
     create_directory(STATE_STORE_LINKS_PATH)
     state_links = read_state_links()

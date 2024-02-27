@@ -6,7 +6,6 @@ from playwright.async_api import Page
 from lowes.utils.playwright import get_el, navigate_to_page
 
 
-@pytest.mark.skip(reason="Passed")
 @patch(
     "playwright.async_api.Page.wait_for_selector",
     return_value=None,

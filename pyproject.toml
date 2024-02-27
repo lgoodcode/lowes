@@ -32,3 +32,4 @@ include = ["**/*.py"]
 # tests with `@pytest.mark.asyncio`
 asyncio_mode = "auto"
 addopts = ["--browser=chromium", "--import-mode=prepend"]
+log_cli_level = "ERROR"
