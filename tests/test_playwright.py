@@ -1,8 +1,8 @@
-from typing import Union
+from typing import Dict
 from unittest.mock import Mock, patch
 
 import pytest
-from playwright.async_api import ElementHandle, Page
+from playwright.async_api import Page
 
 from lowes.utils.playwright import get_el, navigate_to_page
 from lowes.utils.retry import retry
@@ -29,7 +29,7 @@ async def test_navigate_to_page_denied_retries(page: Page):
     tracker = {"retry_count": 0}
 
     @retry()
-    async def test_navigate_to_page(page, tracker) -> None:
+    async def test_navigate_to_page(page: Page, tracker: Dict[str, int]) -> None:
         await page.evaluate(f"document.write('<h1>Access Denied</h1>')")
         if (
             denied_el := await page.query_selector("body h1")
