@@ -4,7 +4,8 @@ from unittest.mock import Mock, patch
 import pytest
 from playwright.async_api import Page
 
-from lowes.utils.playwright import get_el, navigate_to_page
+from lowes.constants import LOWES_URL
+from lowes.utils.playwright import get_el, navigate_to_page, set_store_cookie
 from lowes.utils.retry import retry
 
 
@@ -40,3 +41,22 @@ async def test_navigate_to_page_denied_retries(page: Page):
     with pytest.raises(Exception):
         await test_navigate_to_page(page, tracker)
     assert tracker["retry_count"] == 3
+
+
+async def test_set_store_cookie_error_on_non_lowes_page(page: Page):
+    await navigate_to_page(page, "https://google.com")
+
+    with pytest.raises(Exception) as e:
+        await set_store_cookie(page, "1234")
+    assert "Cannot set cookie for non-Lowes page" in str(e.value)
+
+
+async def test_set_store_cookie(page: Page):
+    await navigate_to_page(page, LOWES_URL)
+    await set_store_cookie(page, "1234")
+
+    cookies = await page.context.cookies()
+    store_cookie = [c for c in cookies if c.get("name") == "sn"]
+
+    assert len(store_cookie)
+    assert store_cookie[0].get("value") == "1234"

@@ -13,7 +13,7 @@ from playwright.async_api import (
 )
 from playwright_stealth import stealth_async
 
-from lowes.constants import CHROMIUM_KWARGS
+from lowes.constants import CHROMIUM_KWARGS, LOWES_URL
 from lowes.utils.logger import get_logger
 from lowes.utils.proxy import ProxyManager
 from lowes.utils.retry import retry
@@ -85,3 +85,22 @@ async def get_el(page: Page, selector: str, timeout: int = 10_000) -> ElementHan
     if not el:
         raise Exception(f"Could not find selector {selector}")
     return el
+
+
+async def set_store_cookie(page: Page, store_id: str) -> None:
+    if LOWES_URL not in page.url:
+        raise Exception(f"Cannot set cookie for non-Lowes page: {page.url}")
+
+    await page.context.add_cookies(
+        [
+            {
+                "name": "sn",
+                "value": store_id,
+                "domain": "www.lowes.com",
+                "path": "/",
+                "httpOnly": False,
+                "secure": True,
+                "expires": 2147483647,
+            }
+        ]
+    )
