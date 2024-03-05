@@ -1,5 +1,6 @@
 from asyncio import sleep
 from random import randint
+from time import time
 from typing import Any, Awaitable, Callable, Coroutine, List, Union
 
 from playwright.async_api import (
@@ -13,7 +14,7 @@ from playwright.async_api import (
 )
 from playwright_stealth import stealth_async
 
-from lowes.constants import CHROMIUM_KWARGS
+from lowes.constants import CHROMIUM_KWARGS, LOWES_URL
 from lowes.utils.logger import get_logger
 from lowes.utils.proxy import ProxyManager
 from lowes.utils.retry import retry
@@ -22,29 +23,13 @@ from lowes.utils.tasks import batch_tasks
 logger = get_logger()
 
 
-@retry()
-async def get_el(page: Page, selector: str, timeout: int = 10_000) -> ElementHandle:
-    el = await page.wait_for_selector(selector, timeout=timeout, state="visible")
-
-    if not el:
-        raise Exception(f"Could not find selector {selector}")
-    return el
-
-
-@retry(delay=3, backoff=2)  # Extra delay in case the page was denied
-async def navigate_to_page(page: Page, url: str) -> None:
-    logger.debug(f"Navigating to {url.replace('\n', '')}")
-
-    # Delay to simulate human behavior
-    await sleep(randint(1, 3))
-    await page.goto(url, wait_until="domcontentloaded", timeout=60_000)
-
-    if (
-        denied_el := await page.query_selector("body h1")
-    ) and await denied_el.text_content() == "Access Denied":
-        raise Exception(f"Access denied - {url}")
-
-    logger.debug(f"Arrived at {page.url}")
+async def run_with_context(
+    process: Callable[[Playwright, int], Awaitable[List[Coroutine[Any, Any, None]]]],
+    max_concurrency: int,
+) -> None:
+    async with async_playwright() as playwright:
+        tasks = await process(playwright, max_concurrency)
+        await batch_tasks(tasks, max_concurrency)
 
 
 async def create_browser(playwright: Playwright, headless: bool = False) -> Browser:
@@ -78,10 +63,62 @@ async def create_page(playwright: Union[Playwright, BrowserContext]) -> Page:
     return page
 
 
-async def run_with_context(
-    process: Callable[[Playwright, int], Awaitable[List[Coroutine[Any, Any, None]]]],
-    max_concurrency: int,
-) -> None:
-    async with async_playwright() as playwright:
-        tasks = await process(playwright, max_concurrency)
-        await batch_tasks(tasks, max_concurrency)
+@retry(delay=3, backoff=2)  # Extra delay in case the page was denied
+async def navigate_to_page(page: Page, url: str) -> None:
+    logger.debug(f"Navigating to {url.replace('\n', '')}")
+
+    # Delay to simulate human behavior
+    await sleep(randint(1, 3))
+    await page.goto(url, wait_until="domcontentloaded", timeout=60_000)
+
+    if (
+        denied_el := await page.query_selector("body h1")
+    ) and await denied_el.text_content() == "Access Denied":
+        raise Exception(f"Access denied - {url}")
+
+    logger.debug(f"Arrived at {page.url}")
+
+
+@retry()
+async def get_el(page: Page, selector: str, timeout: int = 10_000) -> ElementHandle:
+    el = await page.wait_for_selector(selector, timeout=timeout, state="visible")
+
+    if not el:
+        raise Exception(f"Could not find selector {selector}")
+    return el
+
+
+async def set_store_cookie(page: Page, store_id: str) -> None:
+    if LOWES_URL not in page.url:
+        raise Exception(f"Cannot set cookie for non-Lowes page: {page.url}")
+
+    await page.context.add_cookies(
+        [
+            {
+                "name": "sn",
+                "value": store_id,
+                "domain": "www.lowes.com",
+                "path": "/",
+                "httpOnly": False,
+                "secure": True,
+                "expires": time() + 365 * 24 * 60 * 60,
+            }
+        ]
+    )
+
+
+async def change_store(page: Page, store_id: str) -> None:
+    await set_store_cookie(page, store_id)
+    await page.reload(wait_until="domcontentloaded")
+
+
+async def get_store_name(page: Page) -> str:
+    store_name_el = await get_el(page, "#store-search-handler")
+
+    if not store_name_el:
+        raise Exception("Could not find store name")
+
+    if not (store_name := await store_name_el.text_content()):
+        raise Exception("Could not find store name")
+
+    return store_name.split(" ")[0]
