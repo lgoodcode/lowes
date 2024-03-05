@@ -1,46 +1,54 @@
-from typing import Any, Coroutine, List
+from typing import List
 
-from playwright.async_api import BrowserContext, Page
+from playwright.async_api import Page, Playwright
 
 from lowes.constants import LOWES_STORES_URL, STATE_STORE_LINKS_PATH
-from lowes.utils.logger import get_logger
+from lowes.utils.classes import TaskRunner
 from lowes.utils.playwright import create_page, navigate_to_page
-
-logger = get_logger()
 
 STATE_LINK_QUERY = "div[data-selector='str-storeDetailContainer'] .backyard.link"
 
 
 async def get_state_links(page: Page) -> List[str]:
-    logger.info("Getting state links")
-
     raw_state_link_els = await page.query_selector_all(STATE_LINK_QUERY)
     # Skip the first two links, they are not states
     state_link_els = raw_state_link_els[2:]
-    state_links: List[str] = []
+    links: List[str] = []
 
     for state_link_el in state_link_els:
         if href := await state_link_el.get_attribute("href"):
-            state_links.append(href)
-    return state_links
+            links.append(href)
+    return links
 
 
-def save_state_links(state_links: List[str]) -> None:
-    logger.info("Saving state links")
-
-    with open(STATE_STORE_LINKS_PATH, "w", encoding="utf-8") as file:
-        for state_link in state_links:
-            file.write(state_link + "\n")
+def save_state_links(file_path: str, links: List[str]):
+    with open(file_path, "w", encoding="utf-8") as file:
+        for link in links:
+            file.write(link + "\n")
 
 
-async def retrieve_store_links(
-    context: BrowserContext,
-) -> List[Coroutine[Any, Any, None]]:
-    page = await create_page(context)
+class StateLinkRetriever(TaskRunner):
+    links: List[str]
 
-    async def task() -> None:
+    def __init__(self):
+        super().__init__()
+
+    async def get_links(self, page: Page):
+        self.logger.info("Getting state links")
+        self.links = await get_state_links(page)
+
+    def save_links(self, links: List[str]):
+        self.logger.info("Saving state links")
+
+        if len(links) == 0:
+            raise Exception("No links to save, exiting")
+
+        save_state_links(STATE_STORE_LINKS_PATH, self.links)
+
+    async def task(self, page: Page) -> None:
         await navigate_to_page(page, LOWES_STORES_URL)
-        state_links = await get_state_links(page)
-        save_state_links(state_links)
+        await self.get_links(page)
+        self.save_links(self.links)
 
-    return [task()]
+    async def create_tasks(self, playwright: Playwright, max_contexts: int):
+        self.tasks.append(self.task(await create_page(playwright)))

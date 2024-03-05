@@ -1,7 +1,7 @@
 from asyncio import sleep
 from random import randint
 from time import time
-from typing import Any, Awaitable, Callable, Coroutine, List, Union
+from typing import Union
 
 from playwright.async_api import (
     Browser,
@@ -10,7 +10,6 @@ from playwright.async_api import (
     Page,
     Playwright,
     ProxySettings,
-    async_playwright,
 )
 from playwright_stealth import stealth_async
 
@@ -18,18 +17,8 @@ from lowes.constants import CHROMIUM_KWARGS, LOWES_URL
 from lowes.utils.logger import get_logger
 from lowes.utils.proxy import ProxyManager
 from lowes.utils.retry import retry
-from lowes.utils.tasks import batch_tasks
 
 logger = get_logger()
-
-
-async def run_with_context(
-    process: Callable[[Playwright, int], Awaitable[List[Coroutine[Any, Any, None]]]],
-    max_concurrency: int,
-) -> None:
-    async with async_playwright() as playwright:
-        tasks = await process(playwright, max_concurrency)
-        await batch_tasks(tasks, max_concurrency)
 
 
 async def create_browser(playwright: Playwright, headless: bool = False) -> Browser:
