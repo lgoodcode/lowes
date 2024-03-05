@@ -1,5 +1,6 @@
 from asyncio import sleep
 from random import randint
+from time import time
 from typing import Any, Awaitable, Callable, Coroutine, List, Union
 
 from playwright.async_api import (
@@ -100,7 +101,24 @@ async def set_store_cookie(page: Page, store_id: str) -> None:
                 "path": "/",
                 "httpOnly": False,
                 "secure": True,
-                "expires": 2147483647,
+                "expires": time() + 365 * 24 * 60 * 60,
             }
         ]
     )
+
+
+async def change_store(page: Page, store_id: str) -> None:
+    await set_store_cookie(page, store_id)
+    await page.reload(wait_until="domcontentloaded")
+
+
+async def get_store_name(page: Page) -> str:
+    store_name_el = await get_el(page, "#store-search-handler")
+
+    if not store_name_el:
+        raise Exception("Could not find store name")
+
+    if not (store_name := await store_name_el.text_content()):
+        raise Exception("Could not find store name")
+
+    return store_name.split(" ")[0]

@@ -5,8 +5,18 @@ import pytest
 from playwright.async_api import Page
 
 from lowes.constants import LOWES_URL
-from lowes.utils.playwright import get_el, navigate_to_page, set_store_cookie
+from lowes.utils.playwright import (
+    change_store,
+    get_el,
+    get_store_name,
+    navigate_to_page,
+    set_store_cookie,
+)
 from lowes.utils.retry import retry
+
+TEST_STORE_1 = {"id": "2525", "city": "Alabaster"}
+
+TEST_STORE_2 = {"id": "2659", "city": "Anniston"}
 
 
 @patch(
@@ -47,16 +57,26 @@ async def test_set_store_cookie_error_on_non_lowes_page(page: Page):
     await navigate_to_page(page, "https://google.com")
 
     with pytest.raises(Exception) as e:
-        await set_store_cookie(page, "1234")
+        await set_store_cookie(page, TEST_STORE_1["id"])
     assert "Cannot set cookie for non-Lowes page" in str(e.value)
 
 
 async def test_set_store_cookie(page: Page):
     await navigate_to_page(page, LOWES_URL)
-    await set_store_cookie(page, "1234")
+    await set_store_cookie(page, TEST_STORE_1["id"])
+    await page.reload(wait_until="domcontentloaded")
 
     cookies = await page.context.cookies()
     store_cookie = [c for c in cookies if c.get("name") == "sn"]
 
     assert len(store_cookie)
-    assert store_cookie[0].get("value") == "1234"
+    assert store_cookie[0].get("value") == TEST_STORE_1["id"]
+    assert await get_store_name(page) == TEST_STORE_1["city"]
+
+
+async def test_change_store(page: Page):
+    await navigate_to_page(page, LOWES_URL)
+    await change_store(page, TEST_STORE_1["id"])
+    assert await get_store_name(page) == TEST_STORE_1["city"]
+    await change_store(page, TEST_STORE_2["id"])
+    assert await get_store_name(page) == TEST_STORE_2["city"]

@@ -1,8 +1,6 @@
 from os import mkdir, path
 from urllib.parse import urljoin
 
-from playwright.async_api import Cookie
-
 from lowes.constants import LOWES_URL, OUTPUT_DIR
 from lowes.utils.logger import get_logger
 
@@ -23,15 +21,3 @@ def get_full_lowes_url(relative_url: str) -> str:
     """Return the full URL to a page on lowes.com."""
 
     return urljoin(LOWES_URL, relative_url)
-
-
-def create_lowes_store_cookie(store_id: str) -> Cookie:
-    return {
-        "name": "sn",
-        "value": store_id,
-        "domain": "www.lowes.com",
-        "path": "/",
-        "httpOnly": False,
-        "secure": True,
-        "expires": 2147483647,
-    }
