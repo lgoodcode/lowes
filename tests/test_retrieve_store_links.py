@@ -36,9 +36,8 @@ def test_save_state_links(mock_open_arg: Mock):
 
 
 @patch("builtins.open", new_callable=mock_open)
-async def test_retrieve_store_links(mock_open_arg: Mock, context: BrowserContext):
-    task_runner = StateLinkRetriever()
-    await task_runner.main(1)
+async def test_main(mock_open_arg: Mock, context: BrowserContext):
+    await StateLinkRetriever().main(1)
     mock_open_arg.assert_called_once_with(STATE_STORE_LINKS_PATH, "w", encoding="utf-8")
     handle = mock_open_arg()
     assert handle.write.call_count == NUM_STATE_LINKS
