@@ -124,8 +124,6 @@ async def test_get_store_infos_for_state(
     )
     assert mock_get_state_store_links.call_args_list[0].kwargs["state"] == STATE
 
-    print(mock_process_all_state_stores.call_args_list)
-    print(mock_process_all_state_stores.call_args_list[0].kwargs)
     mock_process_all_state_stores.assert_called_once()
     assert (
         mock_process_all_state_stores.call_args_list[0].kwargs["store_links"]
