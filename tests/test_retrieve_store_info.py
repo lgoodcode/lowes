@@ -2,15 +2,12 @@ from os import path
 from typing import List
 from unittest.mock import Mock, mock_open, patch
 
-from playwright.async_api import Page
+from playwright.async_api import BrowserContext, Page
 
 from lowes.constants import STATE_STORES_LINKS_DIR
 from lowes.scripts.retrieve_store_info import (
+    StateStoreInfoRetriever,
     StoreInfo,
-    get_state_store_links,
-    parse_store_page,
-    process_all_state_stores,
-    process_store_page,
     save_store_links,
 )
 from lowes.utils.playwright import navigate_to_page
@@ -29,23 +26,9 @@ STORE_LINKS = [
     "/store/AL-Athens/1799",
     "/store/AL-Bessemer/1531",
 ]
+STATE_LINK = "/Lowes-Stores/Alabama/AL"
 
-LOWES_STORES: List[StoreInfo] = [StoreInfo(*data.split(",")) for data in STORE_DATA]
-
-
-def test_lowes_stores():
-    assert len(LOWES_STORES) == 4
-    assert LOWES_STORES[0].store_id == "2525"
-    assert LOWES_STORES[0].address == "235 Colonial Promenade Pkwy"
-    assert LOWES_STORES[0].city == "Alabaster"
-    assert LOWES_STORES[0].state == "AL"
-    assert LOWES_STORES[0].zipcode == "35007"
-
-
-async def test_parse_store_page(page: Page):
-    await navigate_to_page(page, get_full_lowes_url(STORE_LINKS[0]))
-    store_info = await parse_store_page(page, LOWES_STORES[0].store_id)
-    assert str(LOWES_STORES[0]) == str(store_info)
+TEST_STORES: List[StoreInfo] = [StoreInfo(*data.split(",")) for data in STORE_DATA]
 
 
 @patch("builtins.open", new_callable=mock_open)
@@ -53,7 +36,11 @@ async def test_save_store_links(mock_open_arg: Mock):
     mock_store_links = STORE_LINKS
     mock_state = STATE
 
-    save_store_links(mock_store_links, mock_state)
+    save_store_links(
+        parent_file_path=STATE_STORES_LINKS_DIR,
+        store_links=mock_store_links,
+        state=mock_state,
+    )
 
     mock_file_path = path.join(
         STATE_STORES_LINKS_DIR, f"{mock_state.lower()}_store_links.txt"
@@ -68,38 +55,80 @@ async def test_save_store_links(mock_open_arg: Mock):
     assert handle.write.call_count == len(mock_store_links)
 
 
-@patch("lowes.scripts.retrieve_store_info.save_store_links")
-@patch("lowes.scripts.retrieve_store_info.get_store_links", return_value=STORE_LINKS)
-async def test_get_state_store_links(
-    mock_get_store_links: Mock, mock_save_store_links: Mock, page: Page
-):
-    store_links = await get_state_store_links(page, STORE_LINKS[0], STATE)
-    assert store_links == STORE_LINKS
+async def test_parse_store_page(page: Page):
+    client = StateStoreInfoRetriever()
+    await navigate_to_page(page, get_full_lowes_url(STORE_LINKS[0]))
+    store_info = await client.parse_store_page(page, store_id=TEST_STORES[0].store_id)
+    assert str(TEST_STORES[0]) == str(store_info)
 
 
 async def test_process_store_page(page: Page):
-    store_info = await process_store_page(page, STATE, STORE_LINKS[0])
-    assert str(LOWES_STORES[0]) == str(store_info)
+    client = StateStoreInfoRetriever()
+    store_info = await client.process_store_page(
+        page, store_link=STORE_LINKS[0], store_id=TEST_STORES[0].store_id
+    )
+    assert str(TEST_STORES[0]) == str(store_info)
 
 
-@patch("lowes.scripts.retrieve_store_info.save_store_infos_for_state")
 @patch(
-    "lowes.scripts.retrieve_store_info.process_store_page",
+    "lowes.scripts.retrieve_store_info.StateStoreInfoRetriever.save_store_infos_for_state"
+)
+@patch(
+    "lowes.scripts.retrieve_store_info.StateStoreInfoRetriever.process_store_page",
     # Use side_effect to return a list instead of a single value with "return_value"
-    side_effect=LOWES_STORES,
+    side_effect=TEST_STORES,
 )
 async def test_process_all_state_stores(
     mock_process_store_page: Mock,
     mock_save_store_infos_for_state: Mock,
     page: Page,
 ):
-    await process_all_state_stores(page, STORE_LINKS, STATE)
+    client = StateStoreInfoRetriever()
 
-    for store_link in STORE_LINKS:
-        mock_process_store_page.assert_any_call(page, STATE, store_link)
+    await client.process_all_state_stores(page, store_links=STORE_LINKS, state=STATE)
+
+    # Assert that process_store_page was called for each store link
+    for mock_call, store_link in zip(
+        mock_process_store_page.call_args_list, STORE_LINKS
+    ):
+        assert mock_call.kwargs["store_link"] == store_link
 
     mock_save_store_infos_for_state.assert_called_once()
 
     store_info_list = mock_save_store_infos_for_state.call_args.args[0]
-    for store_info, lowes_store in zip(store_info_list, LOWES_STORES):
-        assert str(store_info) == str(lowes_store)
+    for store, test_store in zip(store_info_list, TEST_STORES):
+        assert str(store) == str(test_store)
+
+
+@patch(
+    "lowes.scripts.retrieve_store_info.StateStoreInfoRetriever.process_all_state_stores",
+)
+@patch(
+    "lowes.scripts.retrieve_store_info.StateStoreInfoRetriever.get_state_store_links",
+    return_value=STORE_LINKS,
+)
+async def test_get_store_infos_for_state(
+    mock_get_state_store_links: Mock,
+    mock_process_all_state_stores: Mock,
+    context: BrowserContext,
+):
+    client = StateStoreInfoRetriever()
+    await client.get_store_infos_for_state(
+        context,
+        state_link=STATE_LINK,
+    )
+
+    mock_get_state_store_links.assert_called_once()
+    assert (
+        mock_get_state_store_links.call_args_list[0].kwargs["state_link"] == STATE_LINK
+    )
+    assert mock_get_state_store_links.call_args_list[0].kwargs["state"] == STATE
+
+    print(mock_process_all_state_stores.call_args_list)
+    print(mock_process_all_state_stores.call_args_list[0].kwargs)
+    mock_process_all_state_stores.assert_called_once()
+    assert (
+        mock_process_all_state_stores.call_args_list[0].kwargs["store_links"]
+        == STORE_LINKS
+    )
+    assert mock_process_all_state_stores.call_args_list[0].kwargs["state"] == STATE

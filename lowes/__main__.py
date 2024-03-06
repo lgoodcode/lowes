@@ -2,19 +2,17 @@ import argparse
 import asyncio
 import traceback
 from time import time
-from typing import Any, List
+from typing import List, Type
 
-from lowes.scripts.retrieve_store_info import retrieve_store_info
-from lowes.scripts.retrieve_store_links import retrieve_store_links
+from lowes.scripts.retrieve_store_links import StateLinkRetriever
+from lowes.utils.classes import TaskRunner
 from lowes.utils.logger import get_logger
-from lowes.utils.playwright import run_with_context
 
 logger = get_logger()
 
 MAX_CONCURRENCY = 8
-SCRIPTS: List[Any] = [
-    retrieve_store_links,
-    retrieve_store_info,
+SCRIPTS: List[Type[TaskRunner]] = [
+    StateLinkRetriever,
 ]
 
 
@@ -38,15 +36,15 @@ async def main():
     args = parser.parse_args()
     script_number = int(args.script_number)
     max_concurrency = min(int(args.concurrency), MAX_CONCURRENCY)
-    selected_script = SCRIPTS[script_number]
+    script = SCRIPTS[script_number]()
 
     start_time = time()
-    logger.info(f"[selected_script]: {selected_script.__name__}")
+    logger.info(f"[selected_script]: {script.name}")
     logger.info(f"[max_concurrency]: {max_concurrency}")
 
     try:
-        await run_with_context(selected_script, max_concurrency)
-        logger.info(f"{selected_script.__name__} completed successfully")
+        await script.main(max_concurrency)
+        logger.info(f"{script.name} completed successfully")
         logger.info(f"Time taken: {time() - start_time:.2f} seconds")
 
     except Exception as e:
