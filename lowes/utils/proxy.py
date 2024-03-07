@@ -68,7 +68,7 @@ class ProxyManager(Singleton):
         self.instantiated = True
 
     def read_proxy_list(self) -> list[str]:
-        logger.info("Reading proxy list")
+        logger.info("[Proxy] Reading proxy list")
 
         with open(PROXIES_FILE_PATH, "r", encoding="utf-8") as file:
             proxies = file.readlines()
