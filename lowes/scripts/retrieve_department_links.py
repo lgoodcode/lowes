@@ -30,8 +30,11 @@ class DepartmentLinkRetriever(TaskRunner):
     def save_links(self):
         self.logger.info("Saving department links")
 
+        if len(self.links) == 0:
+            raise Exception("No links to save")
+
         with open(DEPARTMENT_LINKS_PATH, "w", encoding="utf-8") as file:
-            file.write("".join(self.links) + "\n")
+            file.write("".join([link + "\n" for link in self.links]))
 
     async def task(
         self,
