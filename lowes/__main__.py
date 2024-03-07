@@ -4,6 +4,8 @@ import traceback
 from time import time
 from typing import List, Type
 
+from lowes.scripts.retrieve_department_links import DepartmentLinkRetriever
+from lowes.scripts.retrieve_store_info import StateStoreInfoRetriever
 from lowes.scripts.retrieve_store_links import StateLinkRetriever
 from lowes.utils.classes import TaskRunner
 from lowes.utils.logger import get_logger
@@ -13,6 +15,8 @@ logger = get_logger()
 MAX_CONCURRENCY = 8
 SCRIPTS: List[Type[TaskRunner]] = [
     StateLinkRetriever,
+    StateStoreInfoRetriever,
+    DepartmentLinkRetriever,
 ]
 
 

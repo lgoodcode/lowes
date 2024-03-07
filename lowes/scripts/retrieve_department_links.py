@@ -1,47 +1,48 @@
-from typing import Any, Coroutine, List
+from typing import Any, List
 
-from playwright.async_api import BrowserContext, Page
+from playwright.async_api import Page
 
-from lowes.constants import DEPARTMENT_LINKS_PATH, LOWES_STORES_URL
-from lowes.utils.logger import get_logger
+from lowes.constants import DEPARTMENT_LINKS_PATH, LOWES_DEPARTMENTS_URL
+from lowes.utils.classes import TaskRunner
 from lowes.utils.playwright import create_page, navigate_to_page
-from lowes.utils.utils import get_full_lowes_url
 
-logger = get_logger()
-
-
-DEPARTMENT_SELECTOR = ".departments-container li.kuxg6u_engage-common-3.foDBid"
-LOWES_DEPARTMENTS_URL = get_full_lowes_url("/departments")
+DEPARTMENT_SELECTOR = ".departments-container li.kuxg6u_engage-common-3.foDBid a"
 
 
-async def get_department_links(page: Page) -> List[str]:
-    logger.info("Getting state links")
+class DepartmentLinkRetriever(TaskRunner):
+    links: List[str]
 
-    dept_link_els = await page.query_selector_all(DEPARTMENT_SELECTOR)
-    links: List[str] = []
+    def __init__(self):
+        super().__init__()
+        self.links = []
 
-    for el in dept_link_els:
-        if href := await el.get_attribute("href"):
-            links.append(href)
-    return links
+    async def get_links(self, page: Page):
+        self.logger.info("Getting department links")
 
+        dept_link_els = await page.query_selector_all(DEPARTMENT_SELECTOR)
+        links: List[str] = []
 
-def save_department_links(links: List[str]) -> None:
-    logger.info("Saving department links")
+        for el in dept_link_els:
+            if href := await el.get_attribute("href"):
+                self.links.append(href)
+        return links
 
-    with open(DEPARTMENT_LINKS_PATH, "w", encoding="utf-8") as file:
-        for link in links:
-            file.write(link + "\n")
+    def save_links(self):
+        self.logger.info("Saving department links")
 
+        if len(self.links) == 0:
+            raise Exception("No links to save")
 
-async def retrieve_department_links(
-    context: BrowserContext,
-) -> List[Coroutine[Any, Any, None]]:
-    page = await create_page(context)
+        with open(DEPARTMENT_LINKS_PATH, "w", encoding="utf-8") as file:
+            file.write("".join([link + "\n" for link in self.links]))
 
-    async def task() -> None:
-        await navigate_to_page(page, LOWES_STORES_URL)
-        links = await get_department_links(page)
-        save_department_links(links)
+    async def task(
+        self,
+        page: Page,
+    ) -> None:
+        await navigate_to_page(page, LOWES_DEPARTMENTS_URL)
+        await self.get_links(page)
+        self.save_links()
 
-    return [task()]
+    async def create_tasks(self, playwright: Any, max_contexts: int):
+        self.tasks.append(self.task(await create_page(playwright)))
