@@ -50,9 +50,9 @@ async def test_save_store_links(mock_open_arg: Mock):
     mock_open_arg.assert_called_once_with(mock_file_path, "w", encoding="utf-8")
     handle = mock_open_arg()
 
-    for link in mock_store_links:
-        handle.write.assert_any_call(link + "\n")
-    assert handle.write.call_count == len(mock_store_links)
+    mock_store_string = "".join([link + "\n" for link in mock_store_links])
+    assert handle.write.call_args_list[0].args[0] == mock_store_string
+    assert handle.write.call_count == 1
 
 
 async def test_parse_store_page(page: Page):

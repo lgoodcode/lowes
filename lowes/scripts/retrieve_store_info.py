@@ -47,8 +47,7 @@ def save_store_links(parent_file_path: str, store_links: List[str], state: str) 
     file_path = path.join(parent_file_path, f"{state.lower()}_store_links.txt")
 
     with open(file_path, "w", encoding="utf-8") as file:
-        for store_link in store_links:
-            file.write(store_link + "\n")
+        file.write("".join([store_link + "\n" for store_link in store_links]))
 
 
 async def get_store_links(page: Page) -> List[str]:
@@ -109,8 +108,7 @@ class StateStoreInfoRetriever(TaskRunner):
         file_path = path.join(STATE_STORE_INFO_DIR, f"{state.lower()}_stores.txt")
 
         with open(file_path, "w", encoding="utf-8") as file:
-            for store_info in store_infos:
-                file.write(str(store_info) + "\n")
+            file.write("".join([str(store_info) + "\n" for store_info in store_infos]))
 
         self.logger.info(f"[{state}] - All store info saved successfully")
 
